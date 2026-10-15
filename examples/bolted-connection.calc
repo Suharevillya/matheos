@@ -1,0 +1,77 @@
+---
+title: Bolted shear splice
+project: Example building, brace connection
+author: Ilia Sukharev
+date: 2026-10-15
+revision: A
+code: EN 1993-1-8
+---
+
+# Brace end plate, bolts in shear
+
+Single shear, four bolts M20 8.8, shear plane through the threads.
+Plate 10 mm S355. Brace force from the frame analysis.
+
+```calc
+V_Ed = 200 kN
+n    = 4                  # bolts
+F_v_Ed = V_Ed / n         # per bolt
+```
+
+## Bolt and plate data
+
+```calc
+d    = 20 mm
+d_0  = 22 mm              # hole
+A_s  = 245 mm^2           # tensile stress area
+f_ub = 800 MPa
+t    = 10 mm              # plate
+f_u  = 490 MPa            # S355, t ≤ 40 mm
+e_1  = 40 mm              # end distance, load direction
+e_2  = 40 mm              # edge distance
+p_1  = 70 mm              # pitch, load direction
+gamma_M2 = 1.25
+```
+
+## Shear resistance per bolt, Table 3.4
+
+Thread in the shear plane, class 8.8: α_v = 0.6.
+
+```calc
+alpha_v = 0.6
+F_v_Rd = alpha_v f_ub A_s / gamma_M2 to kN
+check F_v_Ed <= F_v_Rd
+```
+
+## Bearing resistance per bolt, Table 3.4
+
+End bolts govern in the load direction.
+
+```calc
+alpha_d = e_1 / (3 d_0)
+alpha_b = min(alpha_d, f_ub / f_u, 1.0)
+k_1 = min(2.8 e_2 / d_0 - 1.7, 2.5)
+F_b_Rd = k_1 alpha_b f_u d t / gamma_M2 to kN
+check F_v_Ed <= F_b_Rd
+```
+
+## Group resistance, 3.7
+
+Bearing is ductile (F_b,Rd > F_v,Rd not required here), so the group resistance is the sum of the individual bearing resistances, capped by shear.
+
+```calc
+F_Rd = n * min(F_v_Rd, F_b_Rd) to kN
+check V_Ed <= F_Rd
+```
+
+## Spacing limits, Table 3.3
+
+```calc
+check e_1 >= 1.2 d_0
+check e_2 >= 1.2 d_0
+check p_1 >= 2.2 d_0
+```
+
+## Summary
+
+Governing per-bolt resistance {min(F_v_Rd, F_b_Rd)} against {F_v_Ed =}; group utilization {V_Ed / F_Rd}.

@@ -1,0 +1,98 @@
+---
+title: Simply supported floor beam
+project: Example building, axis B
+author: Ilia Sukharev
+date: 2026-10-15
+revision: A
+code: EN 1993-1-1 + Finnish NA
+---
+
+# Floor beam B1
+
+Simply supported beam, uniformly loaded, laterally restrained by the slab.
+Profile IPE 300, steel S355.
+
+## Geometry and loads
+
+```calc
+L    = 6.0 m        # span
+q_Ed = 25 kN/m      # design load, ULS 6.10b
+q_ser = 18 kN/m     # characteristic load, SLS
+```
+
+```calc
+M_Ed = q_Ed * L^2 / 8
+V_Ed = q_Ed * L / 2
+```
+
+## Section and material
+
+IPE 300, values from the profile table.
+
+```calc
+h   = 300 mm
+b   = 150 mm
+t_w = 7.1 mm
+t_f = 10.7 mm
+r   = 15 mm
+A   = 5381 mm^2
+A_v = 2568 mm^2       # shear area, z-z
+I_y = 8356e4 mm^4
+W_el_y = 557.1e3 mm^3
+W_pl_y = 628.4e3 mm^3
+
+f_y = 355 MPa
+E   = 210 GPa
+gamma_M0 = 1.0
+gamma_M1 = 1.0
+```
+
+## Classification
+
+Outstand flange in compression, Table 5.2.
+
+```calc
+eps = sqrt(235 MPa / f_y)
+c_f = (b - t_w - 2 r) / 2
+c_f / t_f
+
+if c_f / t_f <= 9 eps
+  cls = 1
+else if c_f / t_f <= 10 eps
+  cls = 2
+else
+  cls = 3
+end
+```
+
+The flange is class {cls}, so the plastic section modulus is used.
+
+## Bending resistance, 6.2.5
+
+```calc
+M_c_Rd = W_pl_y * f_y / gamma_M0 to kNm      # (6.13)
+check M_Ed <= M_c_Rd
+```
+
+## Shear resistance, 6.2.6
+
+```calc
+V_pl_Rd = A_v * f_y / sqrt(3) / gamma_M0 to kN   # (6.18)
+check V_Ed <= V_pl_Rd
+check V_Ed <= 0.5 V_pl_Rd   # no M-V interaction, 6.2.8(2)
+```
+
+## Deflection
+
+Limit L/250 for the characteristic combination.
+
+```calc
+delta     = 5 q_ser L^4 / (384 E I_y) to mm
+delta_lim = L / 250 to mm
+check delta <= delta_lim
+```
+
+## Summary
+
+Bending utilization {M_Ed / M_c_Rd}, shear {V_Ed / V_pl_Rd}, deflection {delta / delta_lim}.
+IPE 300 S355 is adequate.
