@@ -20,8 +20,9 @@ printed by `matheos guide`, so an agent with only the CLI installed gets it.
 7. `{expr}` and `{name =}`.
 8. Modifiers `;` `:` and block options `hide` / `results`.
 9. Not in v1.
-10. Five mistakes that cost a round-trip: `kN/m2` without `^`, ternary `? :`, a comparison
-    without the `check` keyword, number + quantity, an unknown unit spelling.
+10. Six mistakes that cost a round-trip: `kN/m2` without `^`, ternary `? :`, a comparison
+    without the `check` keyword, number + quantity, an unknown unit spelling, and `a / b c`
+    meaning a/(b·c) (implicit multiplication binds tighter than `/`; write `a / b * c`).
 11. Engineering guidance, five lines: SI inputs with a unit on every literal; `to` on every
     resistance; a `check` for every demand/capacity pair; captions carry clause numbers; prose
     explains, calc computes.

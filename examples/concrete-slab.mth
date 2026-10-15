@@ -41,7 +41,7 @@ Bottom bars ⌀12 c/c 150.
 ```calc
 phi = 12 mm
 s   = 150 mm
-A_s = pi phi^2 / 4 * b / s to mm^2
+A_s = pi phi^2 b / (4 s) to mm^2
 d   = h - c_nom - phi / 2
 ```
 
@@ -68,7 +68,7 @@ check x / d <= 0.45
 ## Minimum reinforcement, 9.2.1.1
 
 ```calc
-A_s_min = max(0.26 f_ctm / f_yk b d, 0.0013 b d) to mm^2    # (9.1N)
+A_s_min = max(0.26 f_ctm / f_yk * b * d, 0.0013 b d) to mm^2    # (9.1N)
 check A_s >= A_s_min
 ```
 

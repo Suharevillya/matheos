@@ -1,0 +1,57 @@
+// Golden documents: examples/*.mth evaluate without errors and match hand-verified numbers (docs/validation/cases.md).
+import { readFileSync } from 'node:fs';
+import { describe, expect, test } from 'vitest';
+import { parse, evaluate, toHtml } from '../src/index.js';
+
+const load = (name: string) => evaluate(parse(readFileSync(new URL(`../../examples/${name}.mth`, import.meta.url), 'utf8')));
+const lines = (r: ReturnType<typeof evaluate>) => r.blocks.flatMap((b) => (b.kind === 'calc' ? b.items : []));
+
+describe('steel-beam', () => {
+  const r = load('steel-beam');
+  test('no errors', () => expect(r.errors).toEqual([]));
+  test('three-line render', () => {
+    expect(lines(r).find((l) => l.latex.startsWith('M_{Ed}'))?.latex)
+      .toBe('M_{Ed} = \\frac{q_{Ed} \\cdot L^{2}}{8} = \\frac{25\\,\\mathrm{kN}/\\mathrm{m} \\cdot \\left(6.0\\,\\mathrm{m}\\right)^{2}}{8} = 112.5\\,\\mathrm{kN{\\cdot}m}');
+  });
+  test('checks', () => {
+    const checks = lines(r).filter((l) => l.kind === 'check');
+    expect(checks.map((c) => [c.verdict, c.eta])).toEqual([[true, '0.50'], [true, '0.14'], [true, '0.28'], [true, '0.72']]);
+  });
+  test('condition line and branch', () => {
+    const cond = lines(r).find((l) => l.kind === 'cond');
+    expect(cond?.latex).toBe('\\frac{c_{f}}{t_{f}} = 5.276 \\le 9\\varepsilon = 7.323');
+    expect(lines(r).find((l) => l.indent)?.latex).toBe('\\mathit{cls} = 1');
+  });
+  test('inline values', () => {
+    const prose = r.blocks.filter((b) => b.kind === 'prose').flatMap((b) => b.inlines.map((i) => i.latex));
+    expect(prose).toEqual(['1', '0.5043', '0.1425', '0.7213']);
+  });
+  test('html renders', () => {
+    const html = toHtml(r);
+    expect(html).toContain('✓ OK');
+    expect(html).toContain('katex');
+  });
+  test('snapshot', () => expect(lines(r).map((l) => [l.kind, l.latex, l.verdict, l.eta, l.error])).toMatchSnapshot());
+});
+
+describe('concrete-slab', () => {
+  const r = load('concrete-slab');
+  test('no errors', () => expect(r.errors).toEqual([]));
+  test('all checks pass', () => expect(lines(r).filter((l) => l.kind === 'check').every((c) => c.verdict)).toBe(true));
+  test('snapshot', () => expect(lines(r).map((l) => [l.kind, l.latex, l.verdict, l.eta, l.error])).toMatchSnapshot());
+});
+
+describe('bolted-connection', () => {
+  const r = load('bolted-connection');
+  test('no errors', () => expect(r.errors).toEqual([]));
+  test('snapshot', () => expect(lines(r).map((l) => [l.kind, l.latex, l.verdict, l.eta, l.error])).toMatchSnapshot());
+});
+
+describe('errors', () => {
+  test('a failed statement does not stop evaluation, dependants show the dependency', () => {
+    const r = evaluate(parse('```calc\nL = 6 m\nx = L + 5\ny = 2 x\nz = 2 L\n```\n'));
+    expect(r.errors.map((e) => e.message)).toEqual(['cannot add a number and a quantity']);
+    const items = lines(r);
+    expect(items.map((i) => i.error)).toEqual([undefined, 'cannot add a number and a quantity', 'depends on x', undefined]);
+  });
+});

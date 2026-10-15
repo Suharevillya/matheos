@@ -47,7 +47,8 @@ unit; it prints as one line. Anything else is **derived** and prints three lines
 
 ### Expressions
 
-math.js syntax: `^` power, implicit multiplication (`q_Ed L`, `5 q_ser L^4`, `9 eps`),
+math.js syntax: `^` power, implicit multiplication (`q_Ed L`, `5 q_ser L^4`, `9 eps`; it binds
+tighter than `/`, so `a / b c` is a/(b·c) and `a / b * c` is (a/b)·c),
 `sqrt`, `min`, `max`, `pi`, `e`, comparison operators in checks and conditions, function
 definition `f(x) = …`, matrices `[1, 2; 3, 4]`. Units are written after numbers (`25 kN/m`,
 `8356e4 mm^4`) and combine through arithmetic. A bare unit name after a number is a unit

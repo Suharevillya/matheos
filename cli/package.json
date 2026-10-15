@@ -1,0 +1,17 @@
+{
+  "name": "@matheos/cli",
+  "version": "0.0.0",
+  "description": "Matheos command line: check and render .mth documents.",
+  "type": "module",
+  "bin": {
+    "matheos": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@matheos/core": "*"
+  }
+}
