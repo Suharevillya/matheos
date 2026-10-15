@@ -9,7 +9,10 @@ Decided in [CLI surface](https://github.com/Suharevillya/matheos/issues/14). Pac
 matheos render <file.mth>... [-o <out>] [--chrome <path>]
 matheos check  <file.mth>... [--json]
 matheos install-chrome
+matheos guide
 ```
+
+- `guide`: prints the packaged agent authoring `SKILL.md` to stdout (see `agent-guide.md`).
 
 - `render`: format by the `-o` extension, `.pdf` or `.html`; default `<name>.pdf` beside the
   source. With several inputs `-o` must be a directory.
