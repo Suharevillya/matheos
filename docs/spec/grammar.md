@@ -91,4 +91,5 @@ in v1. Nesting, negation for `else`, compound conditions: `conditionals.md`.
 ## Not in v1
 
 Loops, imports, catalogs (`IPE300.W_pl_y`), conditional prose, `|` as a `to` alias, plots
-syntax (own ticket), tables with computed cells.
+syntax (own ticket), tables with computed cells, ternary `? :`, and the reserved functions
+`solve derivative integrate simplify roots` (see `symbolic.md`).
