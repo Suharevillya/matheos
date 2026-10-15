@@ -1,28 +1,28 @@
-# Statement grammar (DRAFT, ticket #6)
+# Statement grammar
 
-Status: draft under review. Open points are marked **Q**. The three documents in
-`examples/` are the ground truth; this note describes what they use.
+Decided in [Statement grammar, by example](https://github.com/Suharevillya/matheos/issues/6).
+The documents in `examples/` are the ground truth; this note describes what they use.
 
 ## Document
 
-A `.calc` file (**Q1**): optional YAML front matter, then Markdown. Prose is CommonMark.
-Math lives in fenced blocks tagged `calc` (**Q2**). Everything a Markdown renderer does not
-understand degrades to a code block, so the file still reads on GitHub.
+A `.mth` file: optional YAML front matter, then Markdown. Prose is CommonMark. Math lives in
+fenced blocks tagged `calc`. Everything a Markdown renderer does not understand degrades to a
+code block, so the file still reads on GitHub.
 
 Front matter keys the report uses: `title`, `project`, `author`, `date`, `revision`, `code`,
 `logo` (path). Unknown keys are kept and ignored.
 
 ## Calc block
 
-```
+````
 ```calc [option ...]
 <statement>
 <statement>
 ```
-```
+````
 
-One statement per line. Blank lines allowed. Options in the info string (**Q6**):
-`hide` (evaluate, print nothing), `results` (print result lines only, as `:` on every line).
+One statement per line. Blank lines allowed. Options in the info string: `hide` (evaluate,
+print nothing), `results` (print result lines only, as `:` on every line).
 
 Each statement is one of:
 
@@ -30,14 +30,13 @@ Each statement is one of:
 |---|---|---|
 | Input | `L = 6.0 m` | `L = 6.0 m` |
 | Derived | `M_Ed = q_Ed * L^2 / 8` | formula, substituted, result (three-line render) |
-| Bare expression | `c_f / t_f` | `c_f / t_f = 5.28` (symbolic, substituted, result; no name) |
+| Bare expression | `c_f / t_f` | `c_f / t_f = 5.28` (three-line render, no name) |
 | Check | `check M_Ed <= M_c_Rd` | `M_Ed = 112.5 kN·m ≤ M_c,Rd = 223.1 kN·m  ✓  η = 0.50` |
-| Conditional | `if … / else if … / else / end` | the taken branch only, its condition line first |
-| Comment | `# text` | nothing (own line) or a caption (trailing) (**Q4**) |
+| Conditional | `if … / else if … / else / end` | the taken branch only, its evaluated condition first |
+| Comment | `# text` | nothing on its own line; a right-aligned caption when trailing |
 
-A statement is an *input* when its right-hand side is a literal number with or without a
-unit. Anything else is *derived*. (**Q3**: is "literal with unit" the right test, or should
-`A_s = 245 mm^2` and `f_cd = alpha_cc f_ck / gamma_c` be told apart by an explicit marker?)
+A statement is an **input** when its right-hand side is a literal number with or without a
+unit; it prints as one line. Anything else is **derived** and prints three lines.
 
 ### Modifiers
 
@@ -48,10 +47,12 @@ unit. Anything else is *derived*. (**Q3**: is "literal with unit" the right test
 
 ### Expressions
 
-math.js syntax: `^` power, implicit multiplication (`q_Ed L`, `5 q_ser L^4`), `sqrt`, `min`,
-`max`, `pi`, `e`, comparison operators in checks, function definition `f(x) = …`, matrices
-`[1, 2; 3, 4]`. Units are written after numbers (`25 kN/m`, `8356e4 mm^4`) and combine
-through arithmetic. `kNm` and `kNm/m` are predefined derived units.
+math.js syntax: `^` power, implicit multiplication (`q_Ed L`, `5 q_ser L^4`, `9 eps`),
+`sqrt`, `min`, `max`, `pi`, `e`, comparison operators in checks and conditions, function
+definition `f(x) = …`, matrices `[1, 2; 3, 4]`. Units are written after numbers (`25 kN/m`,
+`8356e4 mm^4`) and combine through arithmetic. A bare unit name after a number is a unit;
+variables may not shadow unit names (rule owned by the units policy). `kNm` and `kNm/m` are
+predefined derived units.
 
 ### Identifiers
 
@@ -64,7 +65,7 @@ unicode Greek is accepted as-is. `'` is a prime.
 
 `check <expr> <op> <expr>` with `<=`, `>=`, `<`, `>`, `==`. Prints both sides with their
 values, the verdict badge, and the utilization `η = left / right` (or `right / left` for
-`>=`). (**Q5**: keyword `check`, or is a bare comparison a check?)
+`>=`). The keyword is required; a bare comparison is a boolean value, not a check.
 
 ### Conditionals
 
@@ -80,15 +81,14 @@ end
 
 Inside a calc block only; conditions are numeric. Only the taken branch prints, preceded by
 the evaluated condition (`c_f / t_f = 5.28 ≤ 9ε = 7.32`). Conditional prose is not supported
-in v1 (fog).
+in v1.
 
 ## Inline values in prose
 
 `{expr}` in prose prints the value with its display unit (`{cls}` → `1`,
-`{M_Ed / M_c_Rd}` → `0.50`). `{name =}` prints `name = value` (`{F_v_Ed =}` → F_{v,Ed} = 50.0 kN)
-(**Q7**).
+`{M_Ed / M_c_Rd}` → `0.50`). `{name =}` prints `name = value` (`{F_v_Ed =}` → F_{v,Ed} = 50.0 kN).
 
 ## Not in v1
 
 Loops, imports, catalogs (`IPE300.W_pl_y`), conditional prose, `|` as a `to` alias, plots
-syntax (own ticket), tables with computed cells (fog).
+syntax (own ticket), tables with computed cells.
