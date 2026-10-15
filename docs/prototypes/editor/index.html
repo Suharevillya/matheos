@@ -1,0 +1,323 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Three editor interaction variants on ?variant=A|B|C, fake results. Wayfinder ticket #12.
+     A: live preview, a calc block renders as the report block while the cursor is outside it (Obsidian).
+     B: source always visible, results inline at the end of each statement line (Calcpad / Soulver).
+     C: split pane, editor left, rendered report right, scroll-synced (Overleaf / Typst). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matheos editor prototype</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root { --bg:#fff; --fg:#111; --mute:#6b6b6b; --line:#e4e4e4; --calc:#f6f8fb; --accent:#0a66c2; --ok:#0a7a2f; --okbg:#e2f3e8; --fail:#b00020; --failbg:#fbe1e5; --chip:#eef3f9; }
+body.dark { --bg:#1b1d21; --fg:#e6e6e6; --mute:#9a9a9a; --line:#33363b; --calc:#22252b; --accent:#5aa2ff; --ok:#5fd38a; --okbg:#1e3a2a; --fail:#ff7a85; --failbg:#4a1f26; --chip:#2b3340; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font: 15px/1.5 Figtree, system-ui, sans-serif; }
+#app { display:flex; height:calc(100% - 44px); }
+#editor { flex:1; min-width:0; overflow:auto; }
+#preview { display:none; flex:1; min-width:0; overflow:auto; border-left:1px solid var(--line); padding: 24px 32px; }
+body.C #preview { display:block; }
+.cm-editor { height:100%; font-size:15px; }
+.cm-scroller { font-family: "JetBrains Mono", monospace; line-height:1.6; padding: 16px 0 60vh; }
+.cm-content { max-width: 820px; padding: 0 24px; }
+body.dark .cm-editor { background:var(--bg); color:var(--fg); } body.dark .cm-gutters { background:var(--bg); border-color:var(--line); color:var(--mute); }
+body.dark .cm-activeLine { background:#ffffff0a; } body.dark .cm-activeLineGutter { background:#ffffff0a; }
+.cm-line.calc { background:var(--calc); }
+.cm-line.fence { color:var(--mute); }
+.cm-line.err { text-decoration: underline wavy var(--fail); text-decoration-skip-ink:none; }
+/* B: inline results */
+.res { font-family:"JetBrains Mono", monospace; color:var(--mute); margin-left: 1.5em; font-size: 13px; }
+.res .katex { font-size: 1.05em; color: var(--fg); }
+.res.e { color:var(--fail); }
+.badge { font: 600 11px "JetBrains Mono", monospace; padding:1px 7px; border-radius:9px; margin: 0 6px; vertical-align: 1px; }
+.badge.ok { background:var(--okbg); color:var(--ok); } .badge.fail { background:var(--failbg); color:var(--fail); }
+/* A: rendered block */
+.block { margin: 2px 24px 6px; max-width: 820px; padding: 8px 14px; border-left: 3px solid var(--accent); background: var(--calc); border-radius: 0 6px 6px 0; cursor: text; font-family: Figtree, sans-serif; }
+.block .st { display:flex; justify-content:space-between; align-items:baseline; padding: 2px 0; }
+.block .cap { font: 12px "JetBrains Mono", monospace; color: var(--mute); margin-left: 16px; white-space: nowrap; }
+.block .cond { color: var(--mute); } .block .branch { border-left: 1.5px solid var(--line); padding-left: 10px; margin: 2px 0 2px 2px; }
+.block .msg { font: 13px "JetBrains Mono", monospace; color: var(--fail); }
+.block .katex-display { margin: 0; display:inline-block; }
+.block .hint { font: 11px "JetBrains Mono", monospace; color: var(--mute); text-align: right; }
+/* fence toolbar */
+.tools { margin-left: 1em; font: 11px "JetBrains Mono", monospace; color: var(--mute); }
+.tools span { border:1px solid var(--line); border-radius:4px; padding:0 5px; margin-left:4px; cursor:pointer; }
+/* inline value chips in prose */
+.chip { background: var(--chip); border-radius: 4px; padding: 0 4px; font-family: "JetBrains Mono", monospace; font-size: 13px; cursor: text; }
+/* C preview */
+#preview h1 { font-size: 22px; margin: 0 0 4px; } #preview h2 { font-size: 16px; margin: 20px 0 6px; border-bottom: 1px solid var(--line); }
+#preview .st { display:flex; justify-content:space-between; align-items:baseline; padding: 3px 0 3px 16px; }
+#preview .cap { font: 12px "JetBrains Mono", monospace; color: var(--mute); }
+#preview .katex-display { margin:0; display:inline-block; }
+#preview .cur { background: var(--calc); border-radius: 4px; }
+#preview .msg { font: 13px "JetBrains Mono", monospace; color: var(--fail); padding-left:16px; }
+#problems { position: sticky; bottom: 0; background: var(--failbg); color: var(--fail); font: 12px "JetBrains Mono", monospace; padding: 6px 10px; border-radius: 4px; margin-top: 20px; }
+/* bar */
+#bar { height:44px; display:flex; align-items:center; gap:10px; padding:0 16px; border-top:1px solid var(--line); font: 13px "JetBrains Mono", monospace; background: var(--bg); }
+#bar a { color:var(--fg); text-decoration:none; padding:3px 9px; border-radius:5px; border:1px solid var(--line); } #bar a.cur { background:var(--accent); color:#fff; border-color:var(--accent); }
+#bar button { font: inherit; padding:3px 9px; border-radius:5px; border:1px solid var(--line); background:transparent; color:var(--fg); cursor:pointer; }
+#bar .sp { flex:1; }
+@media (max-width: 700px) {
+  body.C #app { flex-direction: column; } body.C #preview { border-left:none; border-top:1px solid var(--line); padding: 12px 16px; }
+  body.C.tab-edit #preview { display:none; } body.C.tab-view #editor { display:none; }
+  .cm-content { padding: 0 12px; } .block { margin: 2px 12px 6px; } .res { margin-left: .6em; font-size: 12px; } .block .cap, #preview .cap { display:none; }
+  #bar { gap:6px; padding: 0 8px; font-size: 12px; } #bar .lbl { display:none; }
+}
+#tabs { display:none; } @media (max-width:700px) { body.C #tabs { display:inline-flex; gap:4px; } }
+</style>
+</head>
+<body>
+<div id="app"><div id="editor"></div><div id="preview"></div></div>
+<div id="bar"><span class="lbl">variant</span><a href="?variant=A">A live</a><a href="?variant=B">B inline</a><a href="?variant=C">C split</a><span id="tabs"><button id="tEdit">edit</button><button id="tView">view</button></span><span class="sp"></span><button id="theme">dark</button></div>
+
+<script type="importmap">
+{ "imports": {
+  "@codemirror/state": "https://esm.sh/@codemirror/state@6.7.6",
+  "@codemirror/view": "https://esm.sh/@codemirror/view@6.43.14?deps=@codemirror/state@6.7.6",
+  "@codemirror/language": "https://esm.sh/@codemirror/language@6.13.1?deps=@codemirror/state@6.7.6,@codemirror/view@6.43.14",
+  "codemirror": "https://esm.sh/codemirror@6.0.1?deps=@codemirror/state@6.7.6,@codemirror/view@6.43.14,@codemirror/language@6.13.1",
+  "@codemirror/lang-markdown": "https://esm.sh/@codemirror/lang-markdown@6.5.2?deps=@codemirror/state@6.7.6,@codemirror/view@6.43.14,@codemirror/language@6.13.1"
+}}
+</script>
+<script type="module">
+import { EditorView, basicSetup } from "codemirror";
+import { markdown } from "@codemirror/lang-markdown";
+import { Decoration, WidgetType, ViewPlugin } from "@codemirror/view";
+import { RangeSetBuilder, StateField } from "@codemirror/state";
+
+const V = new URLSearchParams(location.search).get('variant') || 'A';
+document.body.className = V + ' tab-edit';
+document.querySelectorAll('#bar a').forEach(a => { if (a.getAttribute('href').endsWith(V)) a.classList.add('cur'); });
+document.getElementById('theme').onclick = () => { document.body.classList.toggle('dark'); };
+document.getElementById('tEdit').onclick = () => { document.body.classList.replace('tab-view','tab-edit'); };
+document.getElementById('tView').onclick = () => { document.body.classList.replace('tab-edit','tab-view'); };
+
+const DOC = `---
+title: Simply supported floor beam
+project: Example building, axis B
+revision: A
+---
+
+# Floor beam B1
+
+Simply supported beam, uniformly loaded, laterally restrained by the slab.
+Profile IPE 300, steel S355.
+
+## Geometry and loads
+
+\`\`\`calc
+L    = 6.0 m        # span
+q_Ed = 25 kN/m      # design load, ULS 6.10b
+q_ser = 18 kN/m     # characteristic load, SLS
+x = L + 5
+\`\`\`
+
+\`\`\`calc
+M_Ed = q_Ed * L^2 / 8
+V_Ed = q_Ed * L / 2
+\`\`\`
+
+## Section and material
+
+\`\`\`calc
+W_pl_y = 628.4e3 mm^3
+A_v = 2568 mm^2       # shear area, z-z
+f_y = 355 MPa
+gamma_M0 = 1.0
+t_f = 10.7 mm
+c_f = 56.45 mm
+eps = 0.8136
+\`\`\`
+
+## Classification
+
+\`\`\`calc
+if c_f / t_f <= 9 eps
+  cls = 1
+else
+  cls = 3
+end
+\`\`\`
+
+The flange is class {cls}, so the plastic section modulus is used.
+
+## Bending resistance, 6.2.5
+
+\`\`\`calc
+M_c_Rd = W_pl_y * f_y / gamma_M0 to kNm      # (6.13)
+check M_Ed <= M_c_Rd
+\`\`\`
+
+## Shear resistance, 6.2.6
+
+\`\`\`calc
+V_pl_Rd = A_v * f_y / sqrt(3) / gamma_M0 to kN   # (6.18)
+check V_Ed <= V_pl_Rd
+\`\`\`
+
+Bending utilization {M_Ed / M_c_Rd}, shear {V_Ed / V_pl_Rd}. IPE 300 S355 is adequate.
+`;
+
+// fake results, keyed by the statement text without its caption
+const R = {
+  'L = 6.0 m': { k:'in', tex:'L = 6.0\\,\\mathrm{m}' },
+  'q_Ed = 25 kN/m': { k:'in', tex:'q_{Ed} = 25\\,\\mathrm{kN/m}' },
+  'q_ser = 18 kN/m': { k:'in', tex:'q_{ser} = 18\\,\\mathrm{kN/m}' },
+  'x = L + 5': { k:'err', msg:'cannot add m and a number' },
+  'M_Ed = q_Ed * L^2 / 8': { k:'d', res:'112.5\\,\\mathrm{kN{\\cdot}m}', tex:'M_{Ed} = \\frac{q_{Ed}\\,L^{2}}{8} = \\frac{25\\,\\mathrm{kN/m} \\cdot (6.0\\,\\mathrm{m})^{2}}{8} = 112.5\\,\\mathrm{kN{\\cdot}m}' },
+  'V_Ed = q_Ed * L / 2': { k:'d', res:'75\\,\\mathrm{kN}', tex:'V_{Ed} = \\frac{q_{Ed}\\,L}{2} = \\frac{25\\,\\mathrm{kN/m} \\cdot 6.0\\,\\mathrm{m}}{2} = 75\\,\\mathrm{kN}' },
+  'W_pl_y = 628.4e3 mm^3': { k:'in', tex:'W_{pl,y} = 628.4\\cdot10^{3}\\,\\mathrm{mm}^{3}' },
+  'A_v = 2568 mm^2': { k:'in', tex:'A_{v} = 2568\\,\\mathrm{mm}^{2}' },
+  'f_y = 355 MPa': { k:'in', tex:'f_{y} = 355\\,\\mathrm{MPa}' },
+  'gamma_M0 = 1.0': { k:'in', tex:'\\gamma_{M0} = 1.0' },
+  't_f = 10.7 mm': { k:'in', tex:'t_{f} = 10.7\\,\\mathrm{mm}' },
+  'c_f = 56.45 mm': { k:'in', tex:'c_{f} = 56.45\\,\\mathrm{mm}' },
+  'eps = 0.8136': { k:'in', tex:'\\varepsilon = 0.8136' },
+  'if c_f / t_f <= 9 eps': { k:'cond', ok:true, res:'5.276 \\le 7.322', tex:'\\frac{c_{f}}{t_{f}} = 5.276 \\le 9\\varepsilon = 7.322' },
+  'cls = 1': { k:'in', tex:'\\mathit{cls} = 1' },
+  'cls = 3': { k:'skip' }, 'else': { k:'skip' }, 'end': { k:'skip' },
+  'M_c_Rd = W_pl_y * f_y / gamma_M0 to kNm': { k:'d', res:'223.1\\,\\mathrm{kN{\\cdot}m}', tex:'M_{c,Rd} = \\frac{W_{pl,y}\\,f_{y}}{\\gamma_{M0}} = \\frac{628.4\\cdot10^{3}\\,\\mathrm{mm}^{3} \\cdot 355\\,\\mathrm{MPa}}{1.0} = 223.1\\,\\mathrm{kN{\\cdot}m}' },
+  'check M_Ed <= M_c_Rd': { k:'chk', ok:true, eta:'0.50', tex:'M_{Ed} = 112.5\\,\\mathrm{kN{\\cdot}m} \\le M_{c,Rd} = 223.1\\,\\mathrm{kN{\\cdot}m}' },
+  'V_pl_Rd = A_v * f_y / sqrt(3) / gamma_M0 to kN': { k:'d', res:'526.3\\,\\mathrm{kN}', tex:'V_{pl,Rd} = \\frac{A_{v}\\,f_{y}}{\\sqrt{3}\\,\\gamma_{M0}} = \\frac{2568\\,\\mathrm{mm}^{2} \\cdot 355\\,\\mathrm{MPa}}{\\sqrt{3} \\cdot 1.0} = 526.3\\,\\mathrm{kN}' },
+  'check V_Ed <= V_pl_Rd': { k:'chk', ok:true, eta:'0.14', tex:'V_{Ed} = 75\\,\\mathrm{kN} \\le V_{pl,Rd} = 526.3\\,\\mathrm{kN}' },
+};
+const INLINE = { 'cls':'1', 'M_Ed / M_c_Rd':'0.5043', 'V_Ed / V_pl_Rd':'0.1425' };
+
+const K = (tex, display=false) => { const s = document.createElement('span'); katex.render(tex, s, {throwOnError:false, displayMode: display}); return s; };
+const stmt = line => { const t = line.replace(/#.*$/, '').trim().replace(/s+/g, ' '); const cap = (line.match(/#\s*(.*)$/) || [])[1] || ''; return { t, cap, r: R[t] }; };
+const badge = ok => { const b = document.createElement('span'); b.className = 'badge ' + (ok ? 'ok' : 'fail'); b.textContent = ok ? '✓ OK' : '✗ FAIL'; return b; };
+
+// scan the document: fences and statement lines
+function scan(doc) {
+  const blocks = []; let cur = null;
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i), s = line.text;
+    if (!cur && /^```calc/.test(s)) { cur = { open: line, lines: [] }; continue; }
+    if (cur && /^```\s*$/.test(s)) { cur.close = line; blocks.push(cur); cur = null; continue; }
+    if (cur) cur.lines.push(line);
+  }
+  return blocks;
+}
+
+// rendered block (A widget and C preview share this)
+function renderBlock(lines, opts = {}) {
+  const el = document.createElement('div'); el.className = 'block';
+  let inBranch = false;
+  for (const line of lines) {
+    const { t, cap, r } = stmt(line.text);
+    if (!t || !r || r.k === 'skip') continue;
+    const row = document.createElement('div'); row.className = 'st' + (r.k === 'cond' ? ' cond' : '');
+    if (r.k === 'err') { row.innerHTML = `<span class="msg">✗ ${t}: ${r.msg}</span>`; el.appendChild(row); continue; }
+    const left = document.createElement('span'); left.appendChild(K(r.tex, r.k !== 'in'));
+    if (r.k === 'chk') { left.appendChild(badge(r.ok)); const e = document.createElement('span'); e.className = 'cap'; e.textContent = 'η = ' + r.eta; left.appendChild(e); }
+    row.appendChild(left);
+    if (cap) { const c = document.createElement('span'); c.className = 'cap'; c.textContent = cap; row.appendChild(c); }
+    if (r.k === 'cond') { el.appendChild(row); const br = document.createElement('div'); br.className = 'branch'; el.appendChild(br); inBranch = br; continue; }
+    (inBranch || el).appendChild(row);
+  }
+  if (opts.hint) { const h = document.createElement('div'); h.className = 'hint'; h.textContent = 'click or ↓ to edit'; el.appendChild(h); }
+  return el;
+}
+
+class BlockW extends WidgetType {
+  constructor(lines, from) { super(); this.lines = lines; this.from = from; this.key = lines.map(l => l.text).join('\n'); }
+  eq(o) { return o.key === this.key; }
+  toDOM(view) { const el = renderBlock(this.lines, { hint: true }); el.onmousedown = e => { e.preventDefault(); view.dispatch({ selection: { anchor: this.lines[0]?.from ?? this.from }, scrollIntoView: true }); view.focus(); }; return el; }
+  ignoreEvent() { return false; }
+}
+class ResW extends WidgetType {
+  constructor(r, t) { super(); this.r = r; this.t = t; }
+  eq(o) { return o.t === this.t; }
+  toDOM() { const s = document.createElement('span'); s.className = 'res'; const r = this.r;
+    if (!r) { s.textContent = '…'; return s; }
+    if (r.k === 'err') { s.classList.add('e'); s.textContent = '✗ ' + r.msg; return s; }
+    if (r.k === 'd') { s.appendChild(document.createTextNode('= ')); s.appendChild(K(r.res)); return s; }
+    if (r.k === 'chk') { s.appendChild(badge(r.ok)); s.appendChild(document.createTextNode('η = ' + r.eta)); return s; }
+    if (r.k === 'cond') { s.appendChild(badge(r.ok)); s.appendChild(K(r.res)); return s; }
+    return s; }
+}
+class ToolsW extends WidgetType {
+  eq() { return true; }
+  toDOM() { const s = document.createElement('span'); s.className = 'tools'; s.innerHTML = '<span title="evaluate, print nothing">hide</span><span title="print result lines only">results</span><span>↑</span><span>↓</span>'; return s; }
+  ignoreEvent() { return false; }
+}
+class ChipW extends WidgetType {
+  constructor(expr) { super(); this.expr = expr; }
+  eq(o) { return o.expr === this.expr; }
+  toDOM() { const s = document.createElement('span'); s.className = 'chip'; s.textContent = INLINE[this.expr.replace(/\s*=\s*$/, '')] ?? '?'; return s; }
+}
+
+const calcLine = Decoration.line({ class: 'calc' }), fenceLine = Decoration.line({ class: 'fence' }), errLine = Decoration.line({ class: 'err' });
+
+function decorate(state) {
+  const b = new RangeSetBuilder(), doc = state.doc, sel = state.selection.main;
+  const blocks = scan(doc);
+  const items = [];  // {from, to, deco} collected then sorted
+  for (const blk of blocks) {
+    const inside = sel.from >= blk.open.from && sel.to <= (blk.close?.to ?? doc.length);
+    if (V === 'A' && !inside && blk.close) { items.push({ from: blk.open.from, to: blk.close.to, deco: Decoration.replace({ widget: new BlockW(blk.lines, blk.open.from), block: true }) }); continue; }
+    items.push({ from: blk.open.from, to: blk.open.from, deco: fenceLine });
+    if (V !== 'C' && inside) items.push({ from: blk.open.to, to: blk.open.to, deco: Decoration.widget({ widget: new ToolsW(), side: 1 }) });
+    for (const line of blk.lines) {
+      const { t, r } = stmt(line.text);
+      items.push({ from: line.from, to: line.from, deco: r?.k === 'err' ? errLine : calcLine });
+      if (V === 'B' && t && r?.k !== 'skip' && r?.k !== 'in') items.push({ from: line.to, to: line.to, deco: Decoration.widget({ widget: new ResW(r, t), side: 1 }) });
+    }
+    if (blk.close) items.push({ from: blk.close.from, to: blk.close.from, deco: fenceLine });
+  }
+  if (V !== 'C') for (let i = 1; i <= doc.lines; i++) {   // inline values in prose
+    const line = doc.line(i); if (/^(```|\s*$)/.test(line.text) || blocks.some(bk => line.from >= bk.open.from && line.from <= (bk.close?.to ?? doc.length))) continue;
+    for (const m of line.text.matchAll(/\{([^}]+)\}/g)) { const from = line.from + m.index, to = from + m[0].length;
+      if (sel.from <= to && sel.to >= from) continue;
+      items.push({ from, to, deco: Decoration.replace({ widget: new ChipW(m[1]) }) }); }
+  }
+  items.sort((x, y) => x.from - y.from || x.deco.startSide - y.deco.startSide);
+  for (const it of items) b.add(it.from, it.to, it.deco);
+  return b.finish();
+}
+
+const plugin = StateField.define({
+  create: s => decorate(s),
+  update: (d, tr) => (tr.docChanged || tr.selection) ? decorate(tr.state) : d,
+  provide: f => EditorView.decorations.from(f),
+});
+
+const view = new EditorView({
+  doc: DOC, parent: document.getElementById('editor'),
+  extensions: [basicSetup, markdown(), plugin, EditorView.lineWrapping, EditorView.updateListener.of(u => { if (V === 'C' && (u.docChanged || u.selectionSet)) renderPreview(); })],
+});
+
+// C: preview pane + scroll sync
+function renderPreview() {
+  const p = document.getElementById('preview'); p.innerHTML = ''; const doc = view.state.doc; const blocks = scan(doc); const problems = [];
+  const curLine = doc.lineAt(view.state.selection.main.head).number;
+  for (let i = 1; i <= doc.lines; i++) {
+    const line = doc.line(i), s = line.text; const blk = blocks.find(bk => line.number === bk.open.number);
+    if (blk) { const el = renderBlock(blk.lines); el.dataset.line = i; if (curLine >= blk.open.number && curLine <= (blk.close?.number ?? 1e9)) el.classList.add('cur'); p.appendChild(el);
+      for (const l of blk.lines) { const { t, r } = stmt(l.text); if (r?.k === 'err') problems.push(`line ${l.number}: ${t}: ${r.msg}`); }
+      i = blk.close?.number ?? doc.lines; continue; }
+    if (blocks.some(bk => i > bk.open.number && i < (bk.close?.number ?? 1e9))) continue;
+    if (/^---/.test(s) && i < 6) { while (i < doc.lines && !/^---/.test(doc.line(++i).text)); continue; }
+    if (!s.trim()) continue;
+    let el; if (/^# /.test(s)) { el = document.createElement('h1'); el.textContent = s.slice(2); } else if (/^## /.test(s)) { el = document.createElement('h2'); el.textContent = s.slice(3); }
+    else { el = document.createElement('p'); el.innerHTML = s.replace(/\{([^}]+)\}/g, (_, e) => `<span class="chip">${INLINE[e.replace(/\s*=\s*$/, '')] ?? '?'}</span>`); }
+    el.dataset.line = i; if (i === curLine) el.classList.add('cur'); p.appendChild(el);
+  }
+  if (problems.length) { const d = document.createElement('div'); d.id = 'problems'; d.textContent = problems.join('\n'); p.appendChild(d); }
+}
+if (V === 'C') {
+  renderPreview();
+  view.scrollDOM.addEventListener('scroll', () => {
+    const top = view.lineBlockAtHeight(view.scrollDOM.scrollTop + 20); const n = view.state.doc.lineAt(top.from).number;
+    const els = [...document.querySelectorAll('#preview [data-line]')]; const target = els.filter(e => +e.dataset.line <= n).pop() || els[0];
+    if (target) document.getElementById('preview').scrollTo({ top: target.offsetTop - 24, behavior: 'auto' });
+  });
+}
+// keyboard: Mod-Enter = "run" (fake: just flashes), Escape leaves a block in A
+window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { document.body.style.outline = '2px solid var(--accent)'; setTimeout(() => document.body.style.outline = '', 150); } });
+window.__ready = true;
+</script>
+</body>
+</html>
