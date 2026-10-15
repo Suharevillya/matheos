@@ -47,7 +47,15 @@ function statement(it: RenderedStatement): string {
   return `<div class="st ${it.kind}"><span>${body}</span>${it.caption ? `<span class="cap">${esc(it.caption)}</span>` : ''}</div>`;
 }
 
-export function toHtml(r: Rendered): string {
+export interface HtmlOptions {
+  /** Extra `<head>` markup carrying KaTeX CSS and fonts. Defaults to CDN links; the CLI passes inlined assets. */
+  head?: string;
+}
+
+const CDN_HEAD = `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,400..700&family=JetBrains+Mono:ital,wght@0,400..800;1,400..700&display=swap" rel="stylesheet">`;
+
+export function toHtml(r: Rendered, opts: HtmlOptions = {}): string {
   const fm = r.frontMatter;
   const parts: string[] = [];
   for (const block of r.blocks) {
@@ -73,8 +81,7 @@ export function toHtml(r: Rendered): string {
   const meta = [[fm.author, fm.date, fm.revision && `Rev ${fm.revision}`].filter(Boolean).join(' · '), fm.code].filter(Boolean);
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(fm.title ?? 'Matheos')}</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,400..700&family=JetBrains+Mono:ital,wght@0,400..800;1,400..700&display=swap" rel="stylesheet">
+${opts.head ?? CDN_HEAD}
 <style>:root { --h-title: ${cssStr(fm.title)}; --h-project: ${cssStr([fm.project, fm.revision && `Rev ${fm.revision}`].filter(Boolean).join(' · '))}; --f-left: ${cssStr([fm.author, fm.date, fm.code].filter(Boolean).join(' · '))}; }${CSS}</style>
 </head><body><div class="page">
 <div class="head"><div><h1>${esc(fm.title ?? '')}</h1><div style="font-size:10pt;color:#444">${esc(fm.project ?? '')}</div></div>

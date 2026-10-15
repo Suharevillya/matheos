@@ -15,5 +15,10 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run typecheck
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/matheos
+          key: chrome-headless-shell-${{ runner.os }}-v1
+      - run: node cli/dist/main.js install-chrome
       - run: npm test
       - run: npm run check:examples

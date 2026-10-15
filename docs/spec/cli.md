@@ -62,5 +62,5 @@ the cache in `~/.cache/matheos/`, a system Chrome or Edge. `install-chrome` down
 `chrome-headless-shell` into the cache (CI); `render` downloads it on the first PDF with a
 one-line notice. Offline with nothing found: exit 3 with the install instruction.
 
-Build-time check: confirm `chrome-headless-shell` honours `@page` margin boxes; if not, download
-full Chrome for Testing instead.
+Verified 2026-10-15 with chrome-headless-shell 155: `@page` margin boxes (running title, "Page x
+of y") appear in the PDF, same as full Chrome. The CLI smoke test asserts it.
