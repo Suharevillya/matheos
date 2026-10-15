@@ -6,14 +6,15 @@
 <meta charset="utf-8">
 <title>Simply supported floor beam</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,400..700&family=JetBrains+Mono:ital,wght@0,400..800;1,400..700&display=swap" rel="stylesheet">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <style>
 /* ---------- shared ---------- */
 @page { size: A4; margin: 22mm 18mm 20mm 22mm;
-  @top-left { content: "Simply supported floor beam"; font: 9pt/1 Georgia, serif; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
-  @top-right { content: "Example building, axis B · Rev A"; font: 9pt/1 Georgia, serif; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
-  @bottom-left { content: "Ilia Sukharev · 2026-10-15 · EN 1993-1-1 + Finnish NA"; font: 8pt/1 Georgia, serif; color: #777; vertical-align: top; padding-top: 3mm; }
-  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt/1 Georgia, serif; color: #777; vertical-align: top; padding-top: 3mm; }
+  @top-left { content: "Simply supported floor beam"; font: 8.5pt/1 "JetBrains Mono", monospace; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
+  @top-right { content: "Example building, axis B · Rev A"; font: 8.5pt/1 "JetBrains Mono", monospace; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
+  @bottom-left { content: "Ilia Sukharev · 2026-10-15 · EN 1993-1-1 + Finnish NA"; font: 7.5pt/1 "JetBrains Mono", monospace; color: #777; vertical-align: top; padding-top: 3mm; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 7.5pt/1 "JetBrains Mono", monospace; color: #777; vertical-align: top; padding-top: 3mm; }
 }
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; color: #111; }
@@ -31,8 +32,11 @@ h1, h2 { break-after: avoid; }
 .logo { width: 34mm; height: 12mm; border: 1px dashed #999; color: #999; font: 9pt system-ui; display: flex; align-items: center; justify-content: center; }
 
 /* ---------- A: classic calc sheet ---------- */
-body.A { font: 11pt/1.45 Georgia, "Times New Roman", serif; }
-.A h1 { font-size: 18pt; margin: 0 0 2mm; } .A h2 { font-size: 12.5pt; margin: 7mm 0 2.5mm; border-bottom: .6pt solid #aaa; padding-bottom: .5mm; }
+body.A { font: 10.5pt/1.45 Figtree, "Segoe UI", sans-serif; }
+.A .cap, .A .eta, .A .meta, .A .badge { font-family: "JetBrains Mono", monospace; }
+.A .cap { font-style: normal; font-size: 8pt; }
+.A .meta { font-size: 8.5pt; }
+.A h1 { font-size: 18pt; font-weight: 700; margin: 0 0 2mm; } .A h2 { font-size: 12pt; font-weight: 600; margin: 7mm 0 2.5mm; border-bottom: .6pt solid #aaa; padding-bottom: .5mm; }
 .A .calc { margin: 2mm 0 3mm 6mm; }
 .A .input { display: flex; justify-content: space-between; align-items: baseline; padding: .4mm 0; }
 .A .stmt { padding: 1.2mm 0; display: flex; justify-content: space-between; align-items: baseline; }
