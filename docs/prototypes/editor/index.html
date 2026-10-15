@@ -186,7 +186,7 @@ const R = {
 const INLINE = { 'cls':'1', 'M_Ed / M_c_Rd':'0.5043', 'V_Ed / V_pl_Rd':'0.1425' };
 
 const K = (tex, display=false) => { const s = document.createElement('span'); katex.render(tex, s, {throwOnError:false, displayMode: display}); return s; };
-const stmt = line => { const t = line.replace(/#.*$/, '').trim().replace(/s+/g, ' '); const cap = (line.match(/#\s*(.*)$/) || [])[1] || ''; return { t, cap, r: R[t] }; };
+const stmt = line => { const t = line.replace(/#.*$/, '').trim().replace(/\s+/g, ' '); const cap = (line.match(/#\s*(.*)$/) || [])[1] || ''; return { t, cap, r: R[t] }; };
 const badge = ok => { const b = document.createElement('span'); b.className = 'badge ' + (ok ? 'ok' : 'fail'); b.textContent = ok ? '✓ OK' : '✗ FAIL'; return b; };
 
 // scan the document: fences and statement lines
