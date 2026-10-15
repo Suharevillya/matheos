@@ -6,7 +6,7 @@ file, evaluated top to bottom, shown live and printed as a report.
 ## Language
 
 **Document**:
-One plain-text file with its own extension: YAML front matter, Markdown prose, and calc
+One plain-text `.mth` file: YAML front matter, Markdown prose, and calc
 blocks. The unit of editing, evaluation and printing.
 _Avoid_: Sheet, notebook, script, worksheet
 
@@ -55,3 +55,26 @@ _Avoid_: Expand, show steps
 The printed form of a document: paged, with header and footer from the front matter, prose
 and rendered statements in order.
 _Avoid_: Output, export, PDF (the PDF is one carrier of a report)
+
+**Input**:
+An assignment whose right-hand side is a literal number, with or without a unit. Prints as one
+line.
+
+**Derived**:
+An assignment whose right-hand side is an expression. Prints as a render.
+
+**Bare expression**:
+A statement with no name, printed as a render without a left-hand side, for intermediate
+ratios the engineer wants to see but not keep.
+
+**Caption**:
+The text of a trailing comment on a statement, printed beside it (a label or a clause
+reference). A comment on its own line prints nothing.
+
+**Conditional**:
+An `if` / `else if` / `else` / `end` group inside a calc block. Only the taken branch prints,
+after its evaluated condition.
+
+**Modifier**:
+A trailing `;` (silent) or `:` (result only) on a statement, or `hide` / `results` on a calc
+block.
