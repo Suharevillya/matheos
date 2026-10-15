@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "artifact": "vite build && node scripts/artifact.cjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",
