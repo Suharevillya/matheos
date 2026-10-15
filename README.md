@@ -1,4 +1,4 @@
-# Mathos
+# Matheos
 
 Calculation documents for structural engineers: a plain-text file mixing Markdown prose
 with unit-aware math statements, evaluated top to bottom, shown live in a minimal editor
