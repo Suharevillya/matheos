@@ -86,7 +86,7 @@ in v1.
 ## Inline values in prose
 
 `{expr}` in prose prints the value with its display unit (`{cls}` → `1`,
-`{M_Ed / M_c_Rd}` → `0.50`). `{name =}` prints `name = value` (`{F_v_Ed =}` → F_{v,Ed} = 50.0 kN).
+`{M_Ed / M_c_Rd}` → `0.5043`). `{name =}` prints `name = value` (`{F_v_Ed =}` → F_{v,Ed} = 50 kN).
 
 ## Not in v1
 
