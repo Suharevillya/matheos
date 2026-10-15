@@ -1,0 +1,165 @@
+<!doctype html>
+<!-- PROTOTYPE, throwaway. Three print-theme variants of the steel-beam example, switchable via ?variant=A|B|C.
+     Question: how does a printed Matheos report look? (wayfinder ticket #11) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Simply supported floor beam</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+/* ---------- shared ---------- */
+@page { size: A4; margin: 22mm 18mm 20mm 22mm;
+  @top-left { content: "Simply supported floor beam"; font: 9pt/1 Georgia, serif; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
+  @top-right { content: "Example building, axis B · Rev A"; font: 9pt/1 Georgia, serif; color: #555; vertical-align: bottom; padding-bottom: 3mm; }
+  @bottom-left { content: "Ilia Sukharev · 2026-10-15 · EN 1993-1-1 + Finnish NA"; font: 8pt/1 Georgia, serif; color: #777; vertical-align: top; padding-top: 3mm; }
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt/1 Georgia, serif; color: #777; vertical-align: top; padding-top: 3mm; }
+}
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; color: #111; }
+.page { max-width: 170mm; margin: 0 auto; padding: 12mm 0; }
+@media screen { body { background: #e9e9e9; } .page { background: #fff; padding: 22mm 18mm 20mm 22mm; margin: 10mm auto; box-shadow: 0 2px 10px rgba(0,0,0,.2); } }
+h1, h2 { break-after: avoid; }
+.stmt, .check, .cond, .input { break-inside: avoid; }
+.katex { font-size: 1.02em; } .katex-display { margin: 0; display: inline-block; text-align: left; } .katex-display > .katex { text-align: left; }
+.ok { color: #0a7a2f; } .fail { color: #b00020; }
+.bar { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); background: #222; color: #fff; padding: 6px 10px; border-radius: 8px; font: 13px system-ui; display: flex; gap: 8px; z-index: 9; }
+.bar a { color: #fff; text-decoration: none; padding: 2px 8px; border-radius: 4px; } .bar a.cur { background: #09f; }
+@media print { .bar { display: none; } }
+.head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1.5pt solid #111; padding-bottom: 3mm; margin-bottom: 6mm; }
+.head .meta { font-size: 9.5pt; line-height: 1.45; text-align: right; color: #333; }
+.logo { width: 34mm; height: 12mm; border: 1px dashed #999; color: #999; font: 9pt system-ui; display: flex; align-items: center; justify-content: center; }
+
+/* ---------- A: classic calc sheet ---------- */
+body.A { font: 11pt/1.45 Georgia, "Times New Roman", serif; }
+.A h1 { font-size: 18pt; margin: 0 0 2mm; } .A h2 { font-size: 12.5pt; margin: 7mm 0 2.5mm; border-bottom: .6pt solid #aaa; padding-bottom: .5mm; }
+.A .calc { margin: 2mm 0 3mm 6mm; }
+.A .input { display: flex; justify-content: space-between; align-items: baseline; padding: .4mm 0; }
+.A .stmt { padding: 1.2mm 0; display: flex; justify-content: space-between; align-items: baseline; }
+.A .cap { font-size: 9pt; color: #666; font-style: italic; margin-left: 6mm; white-space: nowrap; }
+.A .check { display: flex; justify-content: space-between; align-items: baseline; padding: 1.2mm 0; }
+.A .badge { font: bold 9pt system-ui; padding: .5mm 2mm; border-radius: 2mm; margin-left: 4mm; }
+.A .badge.ok { background: #e2f3e8; } .A .badge.fail { background: #fbe1e5; }
+.A .eta { font-size: 9.5pt; color: #444; margin-left: 3mm; }
+.A .cond { padding: 1mm 0; color: #333; }
+.A .branch { border-left: 1.2pt solid #bbb; padding-left: 4mm; margin: 1mm 0 1mm 1mm; }
+
+/* ---------- B: two-column ledger ---------- */
+body.B { font: 10.5pt/1.4 "Segoe UI", system-ui, sans-serif; }
+.B h1 { font-size: 17pt; font-weight: 600; margin: 0 0 1mm; } .B h2 { font-size: 11pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin: 7mm 0 2mm; color: #222; }
+.B .row { display: grid; grid-template-columns: 40mm 1fr; gap: 0 5mm; padding: 1mm 0; border-top: .4pt solid #e2e2e2; align-items: baseline; }
+.B .row.first { border-top: none; }
+.B .lbl { font-size: 8.5pt; color: #666; }
+.B .inputs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1mm 6mm; }
+.B .inputs .input { display: flex; justify-content: space-between; font-size: 10pt; }
+.B .input .cap { font-size: 8pt; color: #888; }
+.B .stmt { display: block; }
+.B .check { display: flex; align-items: center; gap: 4mm; }
+.B .badge { font: 600 8.5pt system-ui; padding: .6mm 2.2mm; border-radius: 1mm; color: #fff; }
+.B .badge.ok { background: #1a8a3f; } .B .badge.fail { background: #c01a2b; }
+.B .eta { font-size: 9pt; color: #444; }
+.B .cond { font-size: 10pt; color: #333; }
+.B .branch { margin-left: 5mm; }
+.B .cap.inline { display: none; }
+
+/* ---------- C: tabulated ---------- */
+body.C { font: 10pt/1.35 Calibri, "Segoe UI", sans-serif; }
+.C h1 { font-size: 16pt; margin: 0 0 1mm; } .C h2 { font-size: 11.5pt; margin: 6mm 0 2mm; background: #eef2f6; padding: 1mm 2mm; }
+.C table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 3mm; font-size: 10pt; }
+.C td, .C th { border: .4pt solid #c8c8c8; padding: 1mm 2mm; vertical-align: middle; }
+.C th { background: #f4f4f4; font-weight: 600; text-align: left; font-size: 8.5pt; color: #444; }
+.C td.sym { width: 20mm; } .C td.val { width: 28mm; text-align: right; white-space: nowrap; } .C td.note { width: 36mm; font-size: 8.5pt; color: #555; }
+.C tr { break-inside: avoid; }
+.C td.ok { background: #e2f3e8; font-weight: 600; text-align: center; } .C td.fail { background: #fbe1e5; font-weight: 600; text-align: center; }
+.C .cond td { background: #fbfbfb; color: #333; font-style: italic; }
+</style>
+</head>
+<body>
+<div class="page" id="page"></div>
+<div class="bar" id="bar"></div>
+
+<script>
+const V = new URLSearchParams(location.search).get('variant') || 'A';
+document.body.className = V;
+document.getElementById('bar').innerHTML = ['A','B','C'].map(v => `<a href="?variant=${v}" class="${v===V?'cur':''}">${v}: ${({A:'classic sheet',B:'ledger',C:'tabulated'})[v]}</a>`).join('');
+
+const T = s => `<span class="m">${s}</span>`;
+const head = `<div class="head"><div><h1>Floor beam B1</h1><div style="font-size:10pt;color:#444">Simply supported floor beam · Example building, axis B</div></div>
+<div class="meta"><div class="logo">logo</div><div style="margin-top:1mm">Ilia Sukharev · 2026-10-15 · Rev A<br>EN 1993-1-1 + Finnish NA</div></div></div>`;
+
+// statements of examples/steel-beam.mth, LaTeX per docs/spec/latex-printer.md
+const inputs1 = [['L = 6.0\\,\\mathrm{m}','span'],['q_{Ed} = 25\\,\\mathrm{kN/m}','design load, ULS 6.10b'],['q_{ser} = 18\\,\\mathrm{kN/m}','characteristic load, SLS']];
+const derived1 = [['M_{Ed} = \\frac{q_{Ed}\\,L^{2}}{8} = \\frac{25\\,\\mathrm{kN/m} \\cdot (6.0\\,\\mathrm{m})^{2}}{8} = 112.5\\,\\mathrm{kN{\\cdot}m}',''],['V_{Ed} = \\frac{q_{Ed}\\,L}{2} = \\frac{25\\,\\mathrm{kN/m} \\cdot 6.0\\,\\mathrm{m}}{2} = 75\\,\\mathrm{kN}','']];
+const inputs2 = [['h = 300\\,\\mathrm{mm}',''],['b = 150\\,\\mathrm{mm}',''],['t_{w} = 7.1\\,\\mathrm{mm}',''],['t_{f} = 10.7\\,\\mathrm{mm}',''],['r = 15\\,\\mathrm{mm}',''],['A = 5381\\,\\mathrm{mm}^{2}',''],['A_{v} = 2568\\,\\mathrm{mm}^{2}','shear area, z-z'],['I_{y} = 8356\\cdot10^{4}\\,\\mathrm{mm}^{4}',''],['W_{el,y} = 557.1\\cdot10^{3}\\,\\mathrm{mm}^{3}',''],['W_{pl,y} = 628.4\\cdot10^{3}\\,\\mathrm{mm}^{3}',''],['f_{y} = 355\\,\\mathrm{MPa}',''],['E = 210\\,\\mathrm{GPa}',''],['\\gamma_{M0} = 1.0',''],['\\gamma_{M1} = 1.0','']];
+const cls = [['\\varepsilon = \\sqrt{\\frac{235\\,\\mathrm{MPa}}{f_{y}}} = \\sqrt{\\frac{235\\,\\mathrm{MPa}}{355\\,\\mathrm{MPa}}} = 0.8136',''],['c_{f} = \\frac{b - t_{w} - 2r}{2} = \\frac{150\\,\\mathrm{mm} - 7.1\\,\\mathrm{mm} - 2 \\cdot 15\\,\\mathrm{mm}}{2} = 56.45\\,\\mathrm{mm}',''],['\\frac{c_{f}}{t_{f}} = \\frac{56.45\\,\\mathrm{mm}}{10.7\\,\\mathrm{mm}} = 5.276','']];
+const cond = '\\frac{c_{f}}{t_{f}} = 5.276 \\le 9\\varepsilon = 7.322';
+const bend = [['M_{c,Rd} = \\frac{W_{pl,y}\\,f_{y}}{\\gamma_{M0}} = \\frac{628.4\\cdot10^{3}\\,\\mathrm{mm}^{3} \\cdot 355\\,\\mathrm{MPa}}{1.0} = 223.1\\,\\mathrm{kN{\\cdot}m}','(6.13)']];
+const chk1 = ['M_{Ed} = 112.5\\,\\mathrm{kN{\\cdot}m} \\le M_{c,Rd} = 223.1\\,\\mathrm{kN{\\cdot}m}', true, '0.50', ''];
+const shear = [['V_{pl,Rd} = \\frac{A_{v}\\,f_{y}}{\\sqrt{3}\\,\\gamma_{M0}} = \\frac{2568\\,\\mathrm{mm}^{2} \\cdot 355\\,\\mathrm{MPa}}{\\sqrt{3} \\cdot 1.0} = 526.3\\,\\mathrm{kN}','(6.18)']];
+const chk2 = ['V_{Ed} = 75\\,\\mathrm{kN} \\le V_{pl,Rd} = 526.3\\,\\mathrm{kN}', true, '0.14', ''];
+const chk3 = ['V_{Ed} = 75\\,\\mathrm{kN} \\le 0.5\\,V_{pl,Rd} = 263.2\\,\\mathrm{kN}', true, '0.28', 'no M-V interaction, 6.2.8(2)'];
+const defl = [['\\delta = \\frac{5\\,q_{ser}\\,L^{4}}{384\\,E\\,I_{y}} = \\frac{5 \\cdot 18\\,\\mathrm{kN/m} \\cdot (6.0\\,\\mathrm{m})^{4}}{384 \\cdot 210\\,\\mathrm{GPa} \\cdot 8356\\cdot10^{4}\\,\\mathrm{mm}^{4}} = 17.31\\,\\mathrm{mm}',''],['\\delta_{lim} = \\frac{L}{250} = \\frac{6.0\\,\\mathrm{m}}{250} = 24\\,\\mathrm{mm}','']];
+const chk4 = ['\\delta = 17.31\\,\\mathrm{mm} \\le \\delta_{lim} = 24\\,\\mathrm{mm}', true, '0.72', ''];
+
+const prose = {
+  intro: 'Simply supported beam, uniformly loaded, laterally restrained by the slab. Profile IPE 300, steel S355.',
+  section: 'IPE 300, values from the profile table.',
+  cls: 'Outstand flange in compression, Table 5.2.',
+  clsAfter: `The flange is class ${T('1')}, so the plastic section modulus is used.`,
+  defl: 'Limit L/250 for the characteristic combination.',
+  summary: `Bending utilization ${T('0.5043')}, shear ${T('0.1425')}, deflection ${T('0.7213')}. IPE 300 S355 is adequate.`
+};
+
+function badge(ok){ return `<span class="badge ${ok?'ok':'fail'}">${ok?'✓ OK':'✗ FAIL'}</span>`; }
+
+const R = {
+A() {
+  const inp = a => `<div class="calc">${a.map(([m,c]) => `<div class="input">${T(m)}<span class="cap">${c}</span></div>`).join('')}</div>`;
+  const der = a => `<div class="calc">${a.map(([m,c]) => `<div class="stmt">${T(m)}<span class="cap">${c}</span></div>`).join('')}</div>`;
+  const chk = ([m,ok,eta,c]) => `<div class="check"><span>${T(m)} ${badge(ok)}<span class="eta">η = ${eta}</span></span><span class="cap">${c}</span></div>`;
+  return `${head}<p>${prose.intro}</p>
+<h2>Geometry and loads</h2>${inp(inputs1)}${der(derived1)}
+<h2>Section and material</h2><p>${prose.section}</p>${inp(inputs2)}
+<h2>Classification</h2><p>${prose.cls}</p>${der(cls)}<div class="calc"><div class="cond">${T(cond)}</div><div class="branch"><div class="input">${T('\\mathit{cls} = 1')}</div></div></div><p>${prose.clsAfter}</p>
+<h2>Bending resistance, 6.2.5</h2>${der(bend)}<div class="calc">${chk(chk1)}</div>
+<h2>Shear resistance, 6.2.6</h2>${der(shear)}<div class="calc">${chk(chk2)}${chk(chk3)}</div>
+<h2>Deflection</h2><p>${prose.defl}</p>${der(defl)}<div class="calc">${chk(chk4)}</div>
+<h2>Summary</h2><p>${prose.summary}</p>`;
+},
+B() {
+  const inp = a => `<div class="row first"><div class="lbl">Inputs</div><div class="inputs">${a.map(([m,c]) => `<div class="input">${T(m)}<span class="cap">${c}</span></div>`).join('')}</div></div>`;
+  const der = a => a.map(([m,c],i) => `<div class="row"><div class="lbl">${c}</div><div class="stmt">${T(m)}</div></div>`).join('');
+  const chk = ([m,ok,eta,c]) => `<div class="row"><div class="lbl">${c || 'Check'}</div><div class="check">${T(m)}${badge(ok)}<span class="eta">η = ${eta}</span></div></div>`;
+  return `${head}<p>${prose.intro}</p>
+<h2>Geometry and loads</h2>${inp(inputs1)}${der(derived1)}
+<h2>Section and material</h2><p>${prose.section}</p>${inp(inputs2)}
+<h2>Classification</h2><p>${prose.cls}</p>${der(cls)}<div class="row"><div class="lbl">Table 5.2</div><div><div class="cond">${T(cond)}</div><div class="branch">${T('\\mathit{cls} = 1')}</div></div></div><p>${prose.clsAfter}</p>
+<h2>Bending resistance, 6.2.5</h2>${der(bend)}${chk(chk1)}
+<h2>Shear resistance, 6.2.6</h2>${der(shear)}${chk(chk2)}${chk(chk3)}
+<h2>Deflection</h2><p>${prose.defl}</p>${der(defl)}${chk(chk4)}
+<h2>Summary</h2><p>${prose.summary}</p>`;
+},
+C() {
+  const split = m => { const i = m.indexOf(' = '); const j = m.lastIndexOf(' = '); return i===j ? [m.slice(0,i), m.slice(i+3), ''] : [m.slice(0,i), m.slice(i+3, j), m.slice(j+3)]; };
+  const tbl = rows => `<table><tr><th>Symbol</th><th>Expression</th><th>Value</th><th>Note</th></tr>${rows}</table>`;
+  const inp = a => tbl(a.map(([m,c]) => { const [s,v] = split(m); return `<tr><td class="sym">${T(s)}</td><td></td><td class="val">${T(v)}</td><td class="note">${c}</td></tr>`; }).join(''));
+  const der = a => a.map(([m,c]) => { const [s,e,v] = split(m); return `<tr><td class="sym">${T(s)}</td><td>${T(e)}</td><td class="val">${T(v)}</td><td class="note">${c}</td></tr>`; }).join('');
+  const chk = ([m,ok,eta,c]) => `<tr><td class="sym">check</td><td>${T(m)}</td><td class="${ok?'ok':'fail'}">${ok?'OK':'FAIL'} · ${eta}</td><td class="note">${c}</td></tr>`;
+  return `${head}<p>${prose.intro}</p>
+<h2>Geometry and loads</h2>${inp(inputs1)}${tbl(der(derived1))}
+<h2>Section and material</h2><p>${prose.section}</p>${inp(inputs2)}
+<h2>Classification</h2><p>${prose.cls}</p>${tbl(der(cls) + `<tr class="cond"><td>if</td><td colspan="3">${T(cond)}</td></tr><tr><td class="sym">${T('\\mathit{cls}')}</td><td></td><td class="val">1</td><td class="note"></td></tr>`)}<p>${prose.clsAfter}</p>
+<h2>Bending resistance, 6.2.5</h2>${tbl(der(bend) + chk(chk1))}
+<h2>Shear resistance, 6.2.6</h2>${tbl(der(shear) + chk(chk2) + chk(chk3))}
+<h2>Deflection</h2><p>${prose.defl}</p>${tbl(der(defl) + chk(chk4))}
+<h2>Summary</h2><p>${prose.summary}</p>`;
+}};
+
+document.getElementById('page').innerHTML = R[V]();
+window.addEventListener('load', () => {
+  document.querySelectorAll('.m').forEach(el => { const s = el.textContent; try { katex.render(s, el, {throwOnError:false, displayMode: !el.closest("p")}); } catch(e){ el.textContent = s; } });
+  document.title = 'ready';
+});
+</script>
+</body>
+</html>
