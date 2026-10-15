@@ -46,6 +46,10 @@ The unit a quantity is printed in, chosen per statement with `to` or by the app'
 for that dimension. Never changes the value.
 _Avoid_: Output unit, target unit
 
+**Unit table**:
+The curated set of units a document may use, with each dimension's default display unit.
+Nothing outside it parses as a unit.
+
 **Display name**:
 How a unit is printed (`kNm` prints as kN·m). Owned by the units table; the printer never
 derives it from the unit's spelling in the source.

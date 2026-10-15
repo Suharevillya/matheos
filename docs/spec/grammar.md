@@ -50,9 +50,9 @@ unit; it prints as one line. Anything else is **derived** and prints three lines
 math.js syntax: `^` power, implicit multiplication (`q_Ed L`, `5 q_ser L^4`, `9 eps`),
 `sqrt`, `min`, `max`, `pi`, `e`, comparison operators in checks and conditions, function
 definition `f(x) = …`, matrices `[1, 2; 3, 4]`. Units are written after numbers (`25 kN/m`,
-`8356e4 mm^4`) and combine through arithmetic. A bare unit name after a number is a unit;
-variables may not shadow unit names (rule owned by the units policy). `kNm` and `kNm/m` are
-predefined derived units.
+`8356e4 mm^4`) and combine through arithmetic. A bare unit name after a number is a unit
+unless the document has bound that name above: scope wins (see `units.md`). `kNm` and
+`kNm/m` are predefined derived units.
 
 ### Identifiers
 
