@@ -35,6 +35,15 @@ describe('check', () => {
   });
 });
 
+describe('guide', () => {
+  test('prints the packaged skill', () => {
+    const r = run('guide');
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain('name: matheos-authoring');
+    expect(r.stdout).toContain('matheos check doc.mth --json');
+  });
+});
+
 describe('render', () => {
   test('self-contained html', () => {
     const out = join(tmp, 'beam.html');

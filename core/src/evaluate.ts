@@ -2,7 +2,7 @@
 import type { MathNode, Unit } from 'mathjs';
 import { math, isUnit, wording, unitLatex } from './units.js';
 import { print, identifier, formatValue, formatEta, literalsOf, negate, type Ctx } from './printer.js';
-import type { Branch, CalcOptions, Document, Pos, Rendered, RenderedError, RenderedStatement, Statement } from './model.js';
+import type { Bare, Branch, CalcOptions, Derived, Document, Pos, Rendered, RenderedError, RenderedStatement, Statement } from './model.js';
 
 type N = MathNode & { op?: string; args?: MathNode[]; implicit?: boolean; type: string; name?: string; content?: MathNode };
 const CMP_FN: Record<string, string> = { '<=': 'smallerEq', '>=': 'largerEq', '<': 'smaller', '>': 'larger', '==': 'equal', '!=': 'unequal' };
@@ -37,11 +37,15 @@ export function evaluate(doc: Document): Rendered {
   };
   const collapse = (pieces: string[]) => pieces.filter((p, i) => i === 0 || p !== pieces[i - 1]);
 
+  /** Result text of an expression: a bound name keeps its own display unit, anything else uses the default rule. */
+  const shown = (node: N, value: unknown): string =>
+    (node.type === 'SymbolNode' && display.get(node.name!)) || fmt(value);
+
   /** `formula = value` for one side of a check or condition; a literal side prints once. */
   const side = (expr: string): { latex: string; value: unknown } => {
     const node = parseExpr(expr);
     const value = run(node);
-    const v = fmt(value);
+    const v = shown(node, value);
     if (isLiteral(node)) return { latex: v, value };
     return { latex: collapse([print(node, 'formula', { ...ctx, literals: literalsOf(expr) }), v]).join(' = '), value };
   };
@@ -74,32 +78,32 @@ export function evaluate(doc: Document): Rendered {
         const ind = indent ? { indent } : {};
         const silent = opts.hide || (st.kind !== 'comment' && st.kind !== 'if' && st.modifier === ';');
         const resultOnly = opts.results || (st.kind !== 'comment' && st.kind !== 'if' && st.modifier === ':');
+        const derived = (s: Derived | Bare) => {
+          const node = parseExpr(s.expr);
+          const value = run(node);
+          convert(value, s.to); // throws early when `to` cannot apply
+          const result = fmt(value, s.to);
+          if (s.kind === 'derived') { scope.set(s.name, value); failed.delete(s.name); display.set(s.name, result); }
+          if (silent) return;
+          const lits = literalsOf(s.expr);
+          const pieces = resultOnly ? [result] : collapse([print(node, 'formula', { ...ctx, literals: lits }), print(node, 'subst', { ...ctx, literals: lits }), result]);
+          const head = s.kind === 'derived' ? [identifier(s.name)] : [];
+          items.push({ kind: s.kind, latex: [...head, ...pieces].join(' = '), pos: s.pos, ...cap, ...ind });
+        };
         switch (st.kind) {
           case 'comment': break;
           case 'input': {
-            const node = parseExpr(st.expr);
-            const value = run(node);
             // echo the literal as typed: number, then the unit text upright
             const m = /^([-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?)\s*(.*)$/i.exec(st.expr)!;
+            if (m[2] && scope.has(m[2])) { derived({ ...st, kind: 'derived' }); break; } // `25 t` with t bound: a product, not a unit
+            const node = parseExpr(st.expr);
+            const value = run(node);
             const latex = m[1]!.replace(/e\+?(-?\d+)/i, '\\cdot10^{$1}') + (m[2] ? `\\,${unitLatex(m[2])}` : '');
             scope.set(st.name, value); failed.delete(st.name); display.set(st.name, latex);
             if (!silent) items.push({ kind: 'input', latex: `${identifier(st.name)} = ${latex}`, pos: st.pos, ...cap, ...ind });
             break;
           }
-          case 'derived': case 'bare': {
-            const node = parseExpr(st.expr);
-            const value = run(node);
-            const shown = convert(value, st.to);
-            const result = fmt(value, st.to);
-            if (st.kind === 'derived') { scope.set(st.name, value); failed.delete(st.name); display.set(st.name, result); }
-            if (silent) break;
-            const lits = literalsOf(st.expr);
-            const pieces = resultOnly ? [result] : collapse([print(node, 'formula', { ...ctx, literals: lits }), print(node, 'subst', { ...ctx, literals: lits }), result]);
-            const head = st.kind === 'derived' ? [identifier(st.name)] : [];
-            items.push({ kind: st.kind, latex: [...head, ...pieces].join(' = '), pos: st.pos, ...cap, ...ind });
-            void shown;
-            break;
-          }
+          case 'derived': case 'bare': derived(st); break;
           case 'check': {
             const L = side(st.left), R = side(st.right);
             const verdict = Boolean((math as unknown as Record<string, (a: unknown, b: unknown) => unknown>)[CMP_FN[st.op]!]!(L.value, R.value));
@@ -135,7 +139,7 @@ export function evaluate(doc: Document): Rendered {
       const inlines = block.inlines.map((inl) => {
         try {
           const node = parseExpr(inl.expr);
-          const v = fmt(run(node));
+          const v = shown(node, run(node));
           return { raw: inl.raw, latex: inl.showName ? `${identifier(inl.expr)} = ${v}` : v, pos: inl.pos };
         } catch (e) {
           const message = e instanceof DependsError ? e.message : wording(e);

@@ -47,6 +47,19 @@ describe('bolted-connection', () => {
   test('snapshot', () => expect(lines(r).map((l) => [l.kind, l.latex, l.verdict, l.eta, l.error])).toMatchSnapshot());
 });
 
+describe('display units follow the name', () => {
+  const r = evaluate(parse('```calc\nL = 6 m\nt = 10 mm\na = 25 t:\nb = L / 250 to mm\ncheck b >= 20 mm\n```\n\n{b =} and {a}\n'));
+  test('a literal times a bound name is a product, not a unit', () => {
+    expect(r.errors).toEqual([]);
+    expect(lines(r)[2]?.latex).toBe('a = 250\\,\\mathrm{mm}');
+  });
+  test('`to` sets the display unit of the name in checks and inline values', () => {
+    expect(lines(r).find((l) => l.kind === 'check')?.latex).toBe('b = 24\\,\\mathrm{mm} \\ge 20\\,\\mathrm{mm}');
+    const inl = r.blocks.filter((b) => b.kind === 'prose').flatMap((b) => b.inlines.map((i) => i.latex));
+    expect(inl).toEqual(['b = 24\\,\\mathrm{mm}', '250\\,\\mathrm{mm}']);
+  });
+});
+
 describe('errors', () => {
   test('a failed statement does not stop evaluation, dependants show the dependency', () => {
     const r = evaluate(parse('```calc\nL = 6 m\nx = L + 5\ny = 2 x\nz = 2 L\n```\n'));

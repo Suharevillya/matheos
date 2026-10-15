@@ -602,7 +602,7 @@ exports[`steel-beam > snapshot 1`] = `
   ],
   [
     "check",
-    "\\delta = 17.31\\,\\mathrm{mm} \\le \\delta_{lim} = 0.024\\,\\mathrm{m}",
+    "\\delta = 17.31\\,\\mathrm{mm} \\le \\delta_{lim} = 24\\,\\mathrm{mm}",
     true,
     "0.72",
     undefined,
