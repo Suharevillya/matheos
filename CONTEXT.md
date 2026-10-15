@@ -83,6 +83,10 @@ reference). A comment on its own line prints nothing.
 An `if` / `else if` / `else` / `end` group inside a calc block. Only the taken branch prints,
 after its evaluated condition.
 
+**Condition line**:
+The evaluated condition printed before a taken branch; for an `else` branch, the last
+condition above it, negated.
+
 **Modifier**:
 A trailing `;` (silent) or `:` (result only) on a statement, or `hide` / `results` on a calc
 block.

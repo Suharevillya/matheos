@@ -81,7 +81,7 @@ end
 
 Inside a calc block only; conditions are numeric. Only the taken branch prints, preceded by
 the evaluated condition (`c_f / t_f = 5.28 ≤ 9ε = 7.32`). Conditional prose is not supported
-in v1.
+in v1. Nesting, negation for `else`, compound conditions: `conditionals.md`.
 
 ## Inline values in prose
 
