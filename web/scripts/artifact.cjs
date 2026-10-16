@@ -5,7 +5,8 @@ const path = require('path');
 
 const dist = path.join(__dirname, '..', 'dist');
 const html = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
-const tags = [...html.matchAll(/<(?:script|link)[^>]*>(?:<\/script>)?/g)].map((m) => m[0]).filter((s) => !/viewport|charset/.test(s));
+// no service worker or manifest in the artifact host (both refused there); keep the bundle and the stylesheet
+const tags = [...html.matchAll(/<(?:script|link)[^>]*>(?:<\/script>)?/g)].map((m) => m[0]).filter((s) => !/viewport|charset|registerSW|manifest|apple-touch-icon|icon/.test(s));
 fs.writeFileSync(path.join(dist, 'artifact.html'), `<title>Matheos Editor</title>\n${tags.join('\n')}\n<div id="root"></div>\n`);
 
 const ch = String.fromCharCode(0xfffd);

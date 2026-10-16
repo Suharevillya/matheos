@@ -59,7 +59,8 @@ class BlockWidget extends WidgetType {
   constructor(readonly items: RenderedStatement[], readonly at: number) { super(); this.key = items.map((i) => `${i.kind}|${i.latex}|${i.error ?? ''}|${i.verdict ?? ''}|${i.eta ?? ''}|${i.caption ?? ''}|${i.indent ? 1 : 0}`).join('\n'); }
   override eq(o: BlockWidget) { return o.key === this.key; }
   toDOM(view: EditorView) {
-    const el = document.createElement('div'); el.className = 'liveblock';
+    const wrap = document.createElement('div'); wrap.className = 'livewrap';
+    const el = document.createElement('div'); el.className = 'liveblock'; wrap.appendChild(el);
     let branch: HTMLElement | undefined;
     for (const it of this.items) {
       const row = document.createElement('div'); row.className = `lst ${it.kind}`;
@@ -76,7 +77,7 @@ class BlockWidget extends WidgetType {
     }
     if (!this.items.length) { el.textContent = 'empty math block'; el.classList.add('empty'); }
     el.onmousedown = (e) => { e.preventDefault(); view.dispatch({ selection: { anchor: this.at }, scrollIntoView: true }); view.focus(); };
-    return el;
+    return wrap;
   }
   override ignoreEvent() { return false; }
 }
@@ -163,14 +164,47 @@ const cmTheme = (dark: boolean): Extension => EditorView.theme({
   '.cm-gutters': { backgroundColor: 'var(--bg)', color: 'var(--mute)', borderRight: '1px solid var(--line)' },
 }, { dark });
 
-export function createEditor(parent: HTMLElement, doc: string, onChange: (text: string) => void, dark: boolean): EditorView {
+/** Ctrl+/: toggle a `#` comment on every selected line. */
+const toggleComment = (view: EditorView): boolean => {
+  const { state } = view;
+  const changes: { from: number; to?: number; insert?: string }[] = [];
+  const seen = new Set<number>();
+  for (const r of state.selection.ranges) {
+    for (let p = r.from; p <= r.to;) {
+      const line = state.doc.lineAt(p);
+      if (!seen.has(line.number)) {
+        seen.add(line.number);
+        const m = /^(\s*)#\s?/.exec(line.text);
+        if (m) changes.push({ from: line.from + m[1]!.length, to: line.from + m[0].length });
+        else changes.push({ from: line.from + (/^\s*/.exec(line.text)?.[0].length ?? 0), insert: '# ' });
+      }
+      if (line.to >= r.to) break;
+      p = line.to + 1;
+    }
+  }
+  view.dispatch({ changes });
+  return true;
+};
+
+export interface Commands { save: () => boolean; preview: () => boolean }
+
+export function replaceText(view: EditorView, text: string) {
+  view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text }, selection: { anchor: 0 } });
+}
+
+export function createEditor(parent: HTMLElement, doc: string, onChange: (text: string) => void, dark: boolean, commands: Commands): EditorView {
   const view = new EditorView({
     parent,
     state: EditorState.create({
       doc,
       extensions: [
         basicSetup, markdown(), syntaxHighlighting(highlight), results, EditorView.lineWrapping,
-        keymap.of([indentWithTab]),
+        keymap.of([
+          indentWithTab,
+          { key: 'Mod-/', run: toggleComment },
+          { key: 'Mod-s', run: () => { (window as unknown as { __matheosSave?: () => void }).__matheosSave?.(); return commands.save(); } },
+          { key: 'Mod-p', run: commands.preview },
+        ]),
         themeCompartment.of(cmTheme(dark)),
         EditorView.updateListener.of((u) => { if (u.docChanged) onChange(u.state.doc.toString()); }),
       ],

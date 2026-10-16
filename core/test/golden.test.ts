@@ -60,6 +60,13 @@ describe('display units follow the name', () => {
   });
 });
 
+describe('unit table', () => {
+  test('units outside the table are unknown, bound names still win', () => {
+    const r = evaluate(parse('```math\nT = 2 h\nh = 300 mm\nd = 2 h\nx = 5 kpa\ny = 3 m to ft\n```\n'));
+    expect(lines(r).map((l) => l.error)).toEqual(['unknown unit "h"', undefined, undefined, 'undefined name "kpa"', 'unknown unit "ft"']);
+  });
+});
+
 describe('errors', () => {
   test('a failed statement does not stop evaluation, dependants show the dependency', () => {
     const r = evaluate(parse('```math\nL = 6 m\nx = L + 5\ny = 2 x\nz = 2 L\n```\n'));

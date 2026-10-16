@@ -1,6 +1,6 @@
 // Document -> Rendered, docs/spec/architecture.md (evaluation), latex-printer.md (three lines), conditionals.md.
 import type { MathNode, Unit } from 'mathjs';
-import { math, isUnit, wording, unitLatex } from './units.js';
+import { math, isUnit, wording, unitLatex, isForeignUnit } from './units.js';
 import { print, identifier, formatValue, formatEta, literalsOf, negate, type Ctx } from './printer.js';
 import type { Bare, Branch, CalcOptions, Derived, Document, Pos, Rendered, RenderedError, RenderedStatement, Statement } from './model.js';
 
@@ -20,12 +20,16 @@ export function evaluate(doc: Document): Rendered {
 
   const parseExpr = (expr: string): N => {
     const node = math.parse(expr) as N;
-    for (const sym of node.filter((x) => x.type === 'SymbolNode') as N[]) if (failed.has(sym.name!)) throw new DependsError(sym.name!);
+    for (const sym of node.filter((x) => x.type === 'SymbolNode') as N[]) {
+      if (failed.has(sym.name!)) throw new DependsError(sym.name!);
+      if (!scope.has(sym.name!) && isForeignUnit(sym.name!)) throw new Error(`unknown unit "${sym.name}"`);
+    }
     return node;
   };
   const run = (node: N): unknown => node.compile().evaluate(scope);
   const convert = (v: unknown, to?: string): unknown => {
     if (!to) return v;
+    for (const sym of (math.parse(to) as N).filter((x) => x.type === 'SymbolNode') as N[]) if (isForeignUnit(sym.name!)) throw new Error(`unknown unit "${sym.name}"`);
     if (!isUnit(v)) throw new Error(`cannot convert a number to ${to}`);
     try { return v.to(to); } catch (e) { throw new Error(`cannot convert ${v.formatUnits()} to ${to}`); }
   };
@@ -138,7 +142,7 @@ export function evaluate(doc: Document): Rendered {
     if (block.kind === 'calc') {
       const items: RenderedStatement[] = [];
       renderStatements(block.statements, block.options, items);
-      blocks.push({ kind: 'calc', items });
+      blocks.push({ kind: 'calc', items, pos: block.pos });
     } else {
       const inlines = block.inlines.map((inl) => {
         try {
@@ -151,7 +155,7 @@ export function evaluate(doc: Document): Rendered {
           return { raw: inl.raw, latex: '?', error: message, pos: inl.pos };
         }
       });
-      blocks.push({ kind: 'prose', mdast: block.mdast, inlines });
+      blocks.push({ kind: 'prose', mdast: block.mdast, inlines, pos: block.pos });
     }
   }
   return { frontMatter: doc.frontMatter, blocks, errors, scope };

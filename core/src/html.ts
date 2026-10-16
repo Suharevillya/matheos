@@ -31,6 +31,9 @@ h2 { font-size: 12pt; font-weight: 600; margin: 7mm 0 2.5mm; border-bottom: .6pt
 .badge.ok { background: #e2f3e8; color: #0a7a2f; } .badge.fail { background: #fbe1e5; color: #b00020; }
 .eta { font: 8.5pt "JetBrains Mono", monospace; color: #444; }
 html { scrollbar-width: thin; }
+.prose > :first-child { margin-top: 0; } .prose > :last-child { margin-bottom: 0; } .prose { margin: 1em 0; }
+.cur { outline: 2px solid #9cc0f5; outline-offset: 2mm; border-radius: 1mm; }
+@media print { .cur { outline: none; } }
 .cond { color: #333; }
 .branch { border-left: 1.2pt solid #bbb; padding-left: 4mm; margin: 1mm 0 1mm 1mm; }
 .err { font: 9pt "JetBrains Mono", monospace; color: #b00020; }
@@ -72,9 +75,9 @@ export function toHtml(r: Rendered, opts: HtmlOptions = {}): string {
         if (!inl) return m;
         return inl.error ? `<span class="err">?</span>` : `<span class="inline">${tex(inl.latex, false)}</span>`;
       });
-      parts.push(html);
+      parts.push(`<div class="prose" data-line="${block.pos.start.line}">${html}</div>`);
     } else {
-      let out = '<div class="calc">', open = false;
+      let out = `<div class="calc" data-line="${block.pos.start.line}">`, open = false;
       for (const it of block.items) {
         if (it.indent && !open) { out += '<div class="branch">'; open = true; }
         if (!it.indent && open) { out += '</div>'; open = false; }

@@ -33,6 +33,9 @@ body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .bar button.plain { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--fg); cursor: pointer; }
 .bar button:focus-visible, .seg button:focus-visible, .bar input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.filename { color: var(--mute); max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.notice { display: flex; align-items: center; gap: 10px; padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px)); background: var(--chip); border-bottom: 1px solid var(--line); font-size: 13px; }
+.notice button.plain { font: inherit; padding: 2px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--fg); cursor: pointer; }
 .status { color: var(--mute); }
 .status .bad { color: var(--fail); }
 .bgpick { display: inline-flex; align-items: center; gap: 4px; color: var(--mute); }
@@ -65,13 +68,14 @@ body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui); }
 .res.dep { color: var(--mute); }
 .badge { font: 600 11px var(--font-mono); padding: 1px 7px; border-radius: 9px; margin-right: 6px; vertical-align: 1px; }
 .badge.ok { background: var(--okbg); color: var(--ok); } .badge.fail { background: var(--failbg); color: var(--fail); }
-.below { display: block; margin: 2px 16px 6px 40px; padding: 4px 0; font-family: var(--font-ui); color: var(--fg); overflow-x: auto; overflow-y: hidden; }
+.below { display: block; margin: 0; padding: 6px 16px 10px 40px; font-family: var(--font-ui); color: var(--fg); overflow-x: auto; overflow-y: hidden; } /* no margins: CodeMirror measures block widgets without them */
 .below .katex-display { margin: 0; text-align: left; } .below .katex-display > .katex { text-align: left; }
 .chip { background: var(--chip); border-radius: 4px; padding: 0 5px; font-family: var(--font-mono); font-size: 12.5px; cursor: text; }
 .chip.e { color: var(--fail); }
 
 /* live mode: a rendered math block in place of its source */
-.liveblock { margin: 4px 16px 8px 24px; padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--calc); border-radius: 0 6px 6px 0; font-family: var(--font-ui); cursor: text; overflow-x: auto; overflow-y: hidden; }
+.livewrap { margin: 0; padding: 4px 16px 8px 24px; }
+.liveblock { padding: 6px 12px; border-left: 3px solid var(--accent); background: var(--calc); border-radius: 0 6px 6px 0; font-family: var(--font-ui); cursor: text; overflow-x: auto; overflow-y: hidden; }
 .liveblock.empty { color: var(--mute); font-family: var(--font-mono); font-size: 12.5px; }
 .lst { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 2px 0; }
 .lst.input { padding: 0; }
@@ -91,8 +95,8 @@ body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-ui); }
   .app[data-mode="split"] .tabs { display: inline-flex; }
   .cm-content { padding: 0 10px; }
   .cm-gutters { display: none; }
-  .below { margin-left: 10px; }
-  .liveblock { margin: 4px 8px 8px 8px; }
+  .below { padding-left: 10px; }
+  .livewrap { padding: 4px 8px 8px 8px; }
   .bar .name { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) { .seg button { transition: background .12s; } }

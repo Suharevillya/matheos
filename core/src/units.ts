@@ -4,8 +4,17 @@ import { create, all, type FactoryFunctionMap, type MathJsInstance, type Unit } 
 export const math: MathJsInstance = create(all as FactoryFunctionMap, { number: 'number' });
 math.createUnit('Nm', { definition: '1 N m', prefixes: 'short' }); // Nm, kNm, MNm
 
-// ponytail: the spec curates the unit table; math.js's full table is still reachable for now.
-// Upgrade path: wrap SymbolNode resolution with an allowlist when a collision actually bites.
+/** The curated unit table (docs/spec/units.md). Any other math.js unit is `unknown unit`. */
+export const UNITS = new Set([
+  'mm', 'cm', 'm', 'km', 'g', 'kg', 't', 's', 'N', 'kN', 'MN', 'Nm', 'kNm', 'MNm',
+  'Pa', 'kPa', 'MPa', 'GPa', 'rad', 'deg', 'K', 'J', 'kJ', 'W', 'kW',
+]);
+
+/** A symbol that math.js would read as a unit but the table does not list. */
+export function isForeignUnit(name: string): boolean {
+  if (UNITS.has(name) || typeof (math as unknown as Record<string, unknown>)[name] === 'function') return false; // min, max, … resolve as functions first
+  return math.Unit.isValuelessUnit(name);
+}
 
 // default display unit per dimension vector [mass, length, time, current, temp, lum, amount, angle, bit]
 const DEFAULTS: Record<string, string> = {

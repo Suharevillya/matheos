@@ -44,8 +44,8 @@ export interface RenderedStatement {
   pos: Pos;
 }
 export interface RenderedInline { raw: string; latex: string; error?: string; pos: Pos }
-export interface RenderedProse { kind: 'prose'; mdast: RootContent; inlines: RenderedInline[] }
-export interface RenderedCalc { kind: 'calc'; items: RenderedStatement[] }
+export interface RenderedProse { kind: 'prose'; mdast: RootContent; inlines: RenderedInline[]; pos: Pos }
+export interface RenderedCalc { kind: 'calc'; items: RenderedStatement[]; pos: Pos }
 export type RenderedBlock = RenderedProse | RenderedCalc;
 
 export interface RenderedError { message: string; pos: Pos }
