@@ -25,7 +25,7 @@ printed by `matheos guide`, so an agent with only the CLI installed gets it.
     meaning a/(b·c) (implicit multiplication binds tighter than `/`; write `a / b * c`).
 11. Engineering guidance, five lines: SI inputs with a unit on every literal; `to` on every
     resistance; a `check` for every demand/capacity pair; captions carry clause numbers; prose
-    explains, calc computes.
+    explains, math computes.
 12. The feedback loop: write `.mth` → `matheos check --json <file>` → fix every error, then
     every failed check that is not intended → `matheos render <file>`. Exit codes 0/1/2/3.
     Agents never read the PDF; the JSON is the loop.

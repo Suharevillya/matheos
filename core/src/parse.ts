@@ -22,7 +22,7 @@ export function parse(text: string): Document {
   for (const node of root.children) {
     if (node.type === 'yaml') { frontMatter = (YAML.parse(node.value) as FrontMatter) ?? {}; continue; }
     const pos = node.position as Pos;
-    if (node.type === 'code' && node.lang === 'calc') {
+    if (node.type === 'code' && (node.lang === 'math' || node.lang === 'calc')) { // `calc` is the pre-rename alias
       const opts = (node.meta ?? '').split(/\s+/);
       const lines = node.value.split('\n');
       const first = pos.start.line + 1;

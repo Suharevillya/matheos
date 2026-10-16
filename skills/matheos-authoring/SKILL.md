@@ -1,11 +1,11 @@
 ---
 name: matheos-authoring
-description: Write and verify Matheos `.mth` calculation documents (Markdown prose + unit-aware calc blocks for structural engineering checks). Use when asked to produce a calculation, a Eurocode check, or a report in Matheos format, or to fix a `.mth` file that `matheos check` rejects.
+description: Write and verify Matheos `.mth` calculation documents (Markdown prose + unit-aware math blocks for structural engineering checks). Use when asked to produce a calculation, a Eurocode check, or a report in Matheos format, or to fix a `.mth` file that `matheos check` rejects.
 ---
 
 # Writing Matheos documents
 
-A `.mth` file is CommonMark with YAML front matter and fenced `calc` blocks. Statements run top
+A `.mth` file is CommonMark with YAML front matter and fenced `math` blocks. Statements run top
 to bottom; every derived statement prints formula, substituted values and result; every `check`
 prints a verdict and the utilization η. Start from the closest file in
 `examples/` (https://github.com/Suharevillya/matheos/tree/main/examples); `steel-beam.mth` is
@@ -24,7 +24,7 @@ code: EN 1993-1-1 + Finnish NA
 ---
 ```
 
-## 2. Statements, one per line inside ```` ```calc ```` fences
+## 2. Statements, one per line inside ```` ```math ```` fences
 
 | Form | Example | Prints |
 |---|---|---|
@@ -71,7 +71,7 @@ else
 end
 ```
 
-Conditions are comparisons, optionally joined with `and`, `or`, `not`. Only inside calc blocks.
+Conditions are comparisons, optionally joined with `and`, `or`, `not`. Only inside math blocks.
 
 ## 7. Inline values in prose
 
@@ -80,7 +80,7 @@ Conditions are comparisons, optionally joined with `and`, `or`, `not`. Only insi
 ## 8. Modifiers and block options
 
 Trailing `;` evaluates silently, trailing `:` prints the result line only. Fence options:
-```` ```calc hide ```` (evaluate, print nothing), ```` ```calc results ```` (result lines only).
+```` ```math hide ```` (evaluate, print nothing), ```` ```math results ```` (result lines only).
 
 ## 9. Not in v1
 
@@ -101,7 +101,7 @@ Loops, imports, section catalogs (`IPE300.W_pl_y`), ternary `? :`, `solve`, `der
 
 SI inputs with a unit on every literal. `to` on every resistance so the report reads in kN and
 kN·m. A `check` for every demand/capacity pair. Captions carry clause numbers (`# (6.13)`).
-Prose explains; calc computes.
+Prose explains; math computes.
 
 ## 12. The feedback loop
 

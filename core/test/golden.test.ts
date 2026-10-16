@@ -19,7 +19,7 @@ describe('steel-beam', () => {
   });
   test('condition line and branch', () => {
     const cond = lines(r).find((l) => l.kind === 'cond');
-    expect(cond?.latex).toBe('\\frac{c_{f}}{t_{f}} = 5.276 \\le 9\\varepsilon = 7.323');
+    expect(cond?.latex).toBe('\\frac{c_{f}}{t_{f}} \\le 9\\varepsilon \\;\\rightarrow\\; 5.276 \\le 7.323');
     expect(lines(r).find((l) => l.indent)?.latex).toBe('\\mathit{cls} = 1');
   });
   test('inline values', () => {
@@ -48,7 +48,7 @@ describe('bolted-connection', () => {
 });
 
 describe('display units follow the name', () => {
-  const r = evaluate(parse('```calc\nL = 6 m\nt = 10 mm\na = 25 t:\nb = L / 250 to mm\ncheck b >= 20 mm\n```\n\n{b =} and {a}\n'));
+  const r = evaluate(parse('```math\nL = 6 m\nt = 10 mm\na = 25 t:\nb = L / 250 to mm\ncheck b >= 20 mm\n```\n\n{b =} and {a}\n'));
   test('a literal times a bound name is a product, not a unit', () => {
     expect(r.errors).toEqual([]);
     expect(lines(r)[2]?.latex).toBe('a = 250\\,\\mathrm{mm}');
@@ -62,7 +62,7 @@ describe('display units follow the name', () => {
 
 describe('errors', () => {
   test('a failed statement does not stop evaluation, dependants show the dependency', () => {
-    const r = evaluate(parse('```calc\nL = 6 m\nx = L + 5\ny = 2 x\nz = 2 L\n```\n'));
+    const r = evaluate(parse('```math\nL = 6 m\nx = L + 5\ny = 2 x\nz = 2 L\n```\n'));
     expect(r.errors.map((e) => e.message)).toEqual(['cannot add a number and a quantity']);
     const items = lines(r);
     expect(items.map((i) => i.error)).toEqual([undefined, 'cannot add a number and a quantity', 'depends on x', undefined]);

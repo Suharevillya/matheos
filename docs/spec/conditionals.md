@@ -15,7 +15,7 @@ else
 end
 ```
 
-- Inside a calc block only. `end` is required and closes the innermost `if`.
+- Inside a math block only. `end` is required and closes the innermost `if`.
 - Nesting is unlimited. Indentation is ignored.
 - The `if` line takes no modifier; `;` and `:` on statements inside branches work as usual.
 - `a ? b : c` is rejected: `use if / else`.
@@ -38,8 +38,11 @@ Only the taken branch prints, preceded by one **condition line**:
 
 | Taken branch | Condition line |
 |---|---|
-| `if` / `else if` | its own condition, evaluated: `c_f/t_f = 5.28 ≤ 9ε = 7.32` |
-| `else` | the last condition above it, operator negated: `c_f/t_f = 12.0 > 10ε = 8.13` |
+| `if` / `else if` | its own condition, then the evaluated comparison: `c_f/t_f ≤ 9ε → 5.28 ≤ 7.32` ✓ |
+| `else` | the last condition above it, operator negated: `c_f/t_f > 10ε → 12.0 > 8.13` ✓ |
+
+(Changed 2026-10-16 on the editor review from `formula = value op formula = value`: the condition
+reads first, the numbers second, and the report shows a verdict badge on the line.)
 
 Negation: `<=`→`>`, `<`→`≥`, `>=`→`<`, `>`→`≤`, `==`→`≠`; a compound condition is wrapped as
 `not (…)`.

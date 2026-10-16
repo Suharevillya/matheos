@@ -8,7 +8,7 @@ holds the three architecture decisions; `docs/research/` the research notes.
 
 | Note | Decides |
 |---|---|
-| [grammar.md](grammar.md) | `.mth` files, calc fences, statement forms, identifiers, checks, conditionals, inline values, not-in-v1 list |
+| [grammar.md](grammar.md) | `.mth` files, math fences, statement forms, identifiers, checks, conditionals, inline values, not-in-v1 list |
 | [latex-printer.md](latex-printer.md) | expression tree → LaTeX: identifiers, operators, functions, the three lines, numbers, unit typography |
 | [units.md](units.md) | unit table, scope-wins rule, display-unit rule, angles, mixing, error wording |
 | [conditionals.md](conditionals.md) | `if` / `else if` / `else` / `end` semantics and the condition line |

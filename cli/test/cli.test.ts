@@ -26,8 +26,8 @@ describe('check', () => {
     expect(j.values.M_Ed).toBe('112.5 kNm');
   });
   test('exit 1 on errors, 2 on a failed check, 3 on usage', () => {
-    const bad = join(tmp, 'bad.mth'); writeFileSync(bad, '```calc\nL = 6 m\nx = L + 5\n```\n');
-    const fail = join(tmp, 'fail.mth'); writeFileSync(fail, '```calc\nM_Ed = 300 kNm\nM_Rd = 200 kNm\ncheck M_Ed <= M_Rd\n```\n');
+    const bad = join(tmp, 'bad.mth'); writeFileSync(bad, '```math\nL = 6 m\nx = L + 5\n```\n');
+    const fail = join(tmp, 'fail.mth'); writeFileSync(fail, '```math\nM_Ed = 300 kNm\nM_Rd = 200 kNm\ncheck M_Ed <= M_Rd\n```\n');
     const r1 = run('check', bad); expect(r1.status).toBe(1); expect(r1.stdout).toMatch(/bad\.mth:3:1 error: cannot add/);
     const r2 = run('check', fail); expect(r2.status).toBe(2); expect(r2.stdout).toMatch(/check failed: M_Ed = 300 kN·m ≤ M_Rd = 200 kN·m\s+η = 1\.50/);
     expect(run('check').status).toBe(3);

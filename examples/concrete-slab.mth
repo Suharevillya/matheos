@@ -12,7 +12,7 @@ code: EN 1992-1-1 + Finnish NA
 One-way slab, 1 m strip. Concrete C30/37, reinforcement B500B.
 Design moment from the frame analysis.
 
-```calc
+```math
 m_Ed = 60 kNm/m       # per metre width
 b    = 1000 mm        # strip width
 M_Ed = m_Ed b to kNm
@@ -22,7 +22,7 @@ c_nom = 30 mm
 
 ## Materials
 
-```calc
+```math
 f_ck = 30 MPa
 f_ctm = 2.9 MPa
 alpha_cc = 0.85
@@ -38,7 +38,7 @@ f_yd = f_yk / gamma_s
 
 Bottom bars ⌀12 c/c 150.
 
-```calc
+```math
 phi = 12 mm
 s   = 150 mm
 A_s = pi phi^2 b / (4 s) to mm^2
@@ -49,7 +49,7 @@ d   = h - c_nom - phi / 2
 
 Rectangular stress block, λ = 0.8, η = 1.0 for f_ck ≤ 50 MPa.
 
-```calc
+```math
 lambda = 0.8
 eta    = 1.0
 x   = A_s f_yd / (lambda eta f_cd b)
@@ -61,13 +61,13 @@ check M_Ed <= M_Rd
 
 Ductility: x/d ≤ 0.45 for C30/37 without redistribution.
 
-```calc
+```math
 check x / d <= 0.45
 ```
 
 ## Minimum reinforcement, 9.2.1.1
 
-```calc
+```math
 A_s_min = max(0.26 f_ctm / f_yk * b * d, 0.0013 b d) to mm^2    # (9.1N)
 check A_s >= A_s_min
 ```

@@ -12,7 +12,7 @@ code: EN 1993-1-8
 Single shear, four bolts M20 8.8, shear plane through the threads.
 Plate 10 mm S355. Brace force from the frame analysis.
 
-```calc
+```math
 V_Ed = 200 kN
 n    = 4                  # bolts
 F_v_Ed = V_Ed / n         # per bolt
@@ -20,7 +20,7 @@ F_v_Ed = V_Ed / n         # per bolt
 
 ## Bolt and plate data
 
-```calc
+```math
 d    = 20 mm
 d_0  = 22 mm              # hole
 A_s  = 245 mm^2           # tensile stress area
@@ -37,7 +37,7 @@ gamma_M2 = 1.25
 
 Thread in the shear plane, class 8.8: α_v = 0.6.
 
-```calc
+```math
 alpha_v = 0.6
 F_v_Rd = alpha_v f_ub A_s / gamma_M2 to kN
 check F_v_Ed <= F_v_Rd
@@ -47,7 +47,7 @@ check F_v_Ed <= F_v_Rd
 
 End bolts govern in the load direction.
 
-```calc
+```math
 alpha_d = e_1 / (3 d_0)
 alpha_b = min(alpha_d, f_ub / f_u, 1.0)
 k_1 = min(2.8 e_2 / d_0 - 1.7, 2.5)
@@ -59,14 +59,14 @@ check F_v_Ed <= F_b_Rd
 
 Bearing is ductile (F_b,Rd > F_v,Rd not required here), so the group resistance is the sum of the individual bearing resistances, capped by shear.
 
-```calc
+```math
 F_Rd = n * min(F_v_Rd, F_b_Rd) to kN
 check V_Ed <= F_Rd
 ```
 
 ## Spacing limits, Table 3.3
 
-```calc
+```math
 check e_1 >= 1.2 d_0
 check e_2 >= 1.2 d_0
 check p_1 >= 2.2 d_0

@@ -25,10 +25,12 @@ h2 { font-size: 12pt; font-weight: 600; margin: 7mm 0 2.5mm; border-bottom: .6pt
 .calc { margin: 2mm 0 3mm 6mm; }
 .st { display: flex; justify-content: space-between; align-items: baseline; padding: 1mm 0; break-inside: avoid; }
 .st.input { padding: .4mm 0; }
-.cap { font: 8pt "JetBrains Mono", monospace; color: #666; margin-left: 6mm; white-space: nowrap; }
-.badge { font: bold 9pt "JetBrains Mono", monospace; padding: .5mm 2mm; border-radius: 2mm; margin-left: 4mm; }
+.right { display: flex; align-items: baseline; gap: 3mm; margin-left: 6mm; white-space: nowrap; }
+.cap { font: 8pt "JetBrains Mono", monospace; color: #666; }
+.badge { font: bold 9pt "JetBrains Mono", monospace; padding: .5mm 2mm; border-radius: 2mm; }
 .badge.ok { background: #e2f3e8; color: #0a7a2f; } .badge.fail { background: #fbe1e5; color: #b00020; }
-.eta { font: 8.5pt "JetBrains Mono", monospace; color: #444; margin-left: 3mm; }
+.eta { font: 8.5pt "JetBrains Mono", monospace; color: #444; }
+html { scrollbar-width: thin; }
 .cond { color: #333; }
 .branch { border-left: 1.2pt solid #bbb; padding-left: 4mm; margin: 1mm 0 1mm 1mm; }
 .err { font: 9pt "JetBrains Mono", monospace; color: #b00020; }
@@ -41,10 +43,13 @@ const cssStr = (s: unknown) => `"${String(s ?? '').replace(/["\\]/g, '\\$&')}"`;
 const tex = (latex: string, display = true) => katex.renderToString(latex, { throwOnError: false, displayMode: display });
 
 function statement(it: RenderedStatement): string {
-  if (it.error) return `<div class="st"><span class="err">✗ ${esc(it.error)}</span>${it.caption ? `<span class="cap">${esc(it.caption)}</span>` : ''}</div>`;
-  let body = tex(it.latex, it.kind !== 'input');
-  if (it.kind === 'check') body += `<span class="badge ${it.verdict ? 'ok' : 'fail'}">${it.verdict ? '✓ OK' : '✗ FAIL'}</span><span class="eta">η = ${it.eta}</span>`;
-  return `<div class="st ${it.kind}"><span>${body}</span>${it.caption ? `<span class="cap">${esc(it.caption)}</span>` : ''}</div>`;
+  const cap = it.caption ? `<span class="cap">${esc(it.caption)}</span>` : '';
+  if (it.error) return `<div class="st"><span class="err">✗ ${esc(it.error)}</span><span class="right">${cap}</span></div>`;
+  const body = tex(it.latex, it.kind !== 'input');
+  let right = '';
+  if (it.kind === 'check' || it.kind === 'cond') right += `<span class="badge ${it.verdict ? 'ok' : 'fail'}">${it.verdict ? '✓ OK' : '✗ FAIL'}</span>`;
+  if (it.kind === 'check') right += `<span class="eta">η = ${it.eta}</span>`;
+  return `<div class="st ${it.kind}"><span>${body}</span><span class="right">${right}${cap}</span></div>`;
 }
 
 export interface HtmlOptions {

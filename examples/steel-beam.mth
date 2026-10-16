@@ -14,13 +14,13 @@ Profile IPE 300, steel S355.
 
 ## Geometry and loads
 
-```calc
+```math
 L    = 6.0 m        # span
 q_Ed = 25 kN/m      # design load, ULS 6.10b
 q_ser = 18 kN/m     # characteristic load, SLS
 ```
 
-```calc
+```math
 M_Ed = q_Ed * L^2 / 8
 V_Ed = q_Ed * L / 2
 ```
@@ -29,7 +29,7 @@ V_Ed = q_Ed * L / 2
 
 IPE 300, values from the profile table.
 
-```calc
+```math
 h   = 300 mm
 b   = 150 mm
 t_w = 7.1 mm
@@ -51,7 +51,7 @@ gamma_M1 = 1.0
 
 Outstand flange in compression, Table 5.2.
 
-```calc
+```math
 eps = sqrt(235 MPa / f_y)
 c_f = (b - t_w - 2 r) / 2
 c_f / t_f
@@ -69,14 +69,14 @@ The flange is class {cls}, so the plastic section modulus is used.
 
 ## Bending resistance, 6.2.5
 
-```calc
+```math
 M_c_Rd = W_pl_y * f_y / gamma_M0 to kNm      # (6.13)
 check M_Ed <= M_c_Rd
 ```
 
 ## Shear resistance, 6.2.6
 
-```calc
+```math
 V_pl_Rd = A_v * f_y / sqrt(3) / gamma_M0 to kN   # (6.18)
 check V_Ed <= V_pl_Rd
 check V_Ed <= 0.5 V_pl_Rd   # no M-V interaction, 6.2.8(2)
@@ -86,7 +86,7 @@ check V_Ed <= 0.5 V_pl_Rd   # no M-V interaction, 6.2.8(2)
 
 Limit L/250 for the characteristic combination.
 
-```calc
+```math
 delta     = 5 q_ser L^4 / (384 E I_y) to mm
 delta_lim = L / 250 to mm
 check delta <= delta_lim

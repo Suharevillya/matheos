@@ -28,16 +28,18 @@ editor themes are separate.
 - Input: one per line, always. Caption right-aligned on the same line, mono, grey.
 - Derived: the three-line render on one line when it fits, caption right-aligned on its first
   line. Clause references like `(6.13)` are ordinary captions.
-- Check: both sides, then a pill badge `✓ OK` (green) or `✗ FAIL` (red) with glyph and word so
-  greyscale print still reads, then `η = 0.50` in mono.
-- Conditional: condition line, taken branch indented with a thin left rule.
+- Check: both sides on the left; on the right edge of the line, a pill badge `✓ OK` (green) or
+  `✗ FAIL` (red) with glyph and word so greyscale print still reads, `η = 0.50` in mono, then the
+  caption (badges right-aligned since the editor review, 2026-10-16).
+- Conditional: condition line (`condition → evaluated`, with the same badge on the right), taken
+  branch indented with a thin left rule.
 - `hide` / `results` / `;` / `:` as the grammar says.
 
 ## Page breaks
 
 - Never inside a statement, a check, or a condition line with its branch.
 - A heading keeps with the block after it.
-- A calc block may split between statements.
+- A math block may split between statements.
 - Tables may split; the header row repeats.
 
 ## Out of this note

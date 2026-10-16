@@ -6,16 +6,16 @@ The documents in `examples/` are the ground truth; this note describes what they
 ## Document
 
 A `.mth` file: optional YAML front matter, then Markdown. Prose is CommonMark. Math lives in
-fenced blocks tagged `calc`. Everything a Markdown renderer does not understand degrades to a
+fenced blocks tagged `math` (`calc` is accepted as the pre-rename alias). Everything a Markdown renderer does not understand degrades to a
 code block, so the file still reads on GitHub.
 
 Front matter keys the report uses: `title`, `project`, `author`, `date`, `revision`, `code`,
 `logo` (path). Unknown keys are kept and ignored.
 
-## Calc block
+## Math block
 
 ````
-```calc [option ...]
+```math [option ...]
 <statement>
 <statement>
 ```
@@ -80,8 +80,8 @@ else
 end
 ```
 
-Inside a calc block only; conditions are numeric. Only the taken branch prints, preceded by
-the evaluated condition (`c_f / t_f = 5.28 ≤ 9ε = 7.32`). Conditional prose is not supported
+Inside a math block only; conditions are numeric. Only the taken branch prints, preceded by
+the condition and its evaluation (`c_f / t_f ≤ 9ε → 5.28 ≤ 7.32`). Conditional prose is not supported
 in v1. Nesting, negation for `else`, compound conditions: `conditionals.md`.
 
 ## Inline values in prose

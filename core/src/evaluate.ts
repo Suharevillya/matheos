@@ -41,24 +41,28 @@ export function evaluate(doc: Document): Rendered {
   const shown = (node: N, value: unknown): string =>
     (node.type === 'SymbolNode' && display.get(node.name!)) || fmt(value);
 
-  /** `formula = value` for one side of a check or condition; a literal side prints once. */
-  const side = (expr: string): { latex: string; value: unknown } => {
+  /** One side of a check or condition: its formula (absent for a literal), its value text, and `formula = value`. */
+  const side = (expr: string): { formula?: string; v: string; latex: string; value: unknown } => {
     const node = parseExpr(expr);
     const value = run(node);
     const v = shown(node, value);
-    if (isLiteral(node)) return { latex: v, value };
-    return { latex: collapse([print(node, 'formula', { ...ctx, literals: literalsOf(expr) }), v]).join(' = '), value };
+    if (isLiteral(node)) return { v, latex: v, value };
+    const formula = print(node, 'formula', { ...ctx, literals: literalsOf(expr) });
+    return { formula, v, latex: collapse([formula, v]).join(' = '), value };
   };
 
+  /** Condition line: `condition → evaluated` (docs/spec/conditionals.md). */
   const condLine = (cond: string, negated: boolean): { latex: string; value: boolean } => {
     const node = parseExpr(cond);
     const value = Boolean(run(node));
-    if (node.type === 'OperatorNode' && CMP_FN[node.op!] && !negated || (negated && node.type === 'OperatorNode' && CMP_FN[node.op!])) {
+    if (node.type === 'OperatorNode' && CMP_FN[node.op!]) {
       const [a, b] = node.args as [N, N];
       const op = negated ? negate(node.op!) : node.op!;
       const L = side(a.toString()), R = side(b.toString());
-      if (op === '==' && (isLiteral(b) && R.latex === fmt(L.value) || isLiteral(a) && L.latex === fmt(R.value))) return { latex: isLiteral(b) ? L.latex : R.latex, value };
-      return { latex: `${L.latex} ${CMP_TEX[op]} ${R.latex}`, value };
+      if (op === '==' && (isLiteral(b) && R.v === fmt(L.value) || isLiteral(a) && L.v === fmt(R.value))) return { latex: isLiteral(b) ? L.latex : R.latex, value };
+      const evaluated = `${L.v} ${CMP_TEX[op]} ${R.v}`;
+      if (!L.formula && !R.formula) return { latex: evaluated, value };
+      return { latex: `${L.formula ?? L.v} ${CMP_TEX[op]} ${R.formula ?? R.v} \\;\\rightarrow\\; ${evaluated}`, value };
     }
     const latex = print(node, 'formula', { ...ctx, literals: literalsOf(cond) });
     return { latex: negated ? `\\text{not } \\left(${latex}\\right)` : latex, value };

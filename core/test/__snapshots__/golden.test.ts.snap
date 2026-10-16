@@ -539,7 +539,7 @@ exports[`steel-beam > snapshot 1`] = `
   ],
   [
     "cond",
-    "\\frac{c_{f}}{t_{f}} = 5.276 \\le 9\\varepsilon = 7.323",
+    "\\frac{c_{f}}{t_{f}} \\le 9\\varepsilon \\;\\rightarrow\\; 5.276 \\le 7.323",
     true,
     undefined,
     undefined,

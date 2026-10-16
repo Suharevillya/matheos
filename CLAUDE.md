@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 Matheos: plain-text `.mth` calculation documents for structural engineers (Markdown prose +
-unit-aware calc blocks), evaluated by `@matheos/core`, checked and rendered by `@matheos/cli`,
+unit-aware math blocks), evaluated by `@matheos/core`, checked and rendered by `@matheos/cli`,
 edited in `@matheos/web`. npm workspaces, TypeScript strict, vitest.
 
 ## Where things are decided

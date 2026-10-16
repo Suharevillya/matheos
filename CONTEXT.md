@@ -6,7 +6,7 @@ file, evaluated top to bottom, shown live and printed as a report.
 ## Language
 
 **Document**:
-One plain-text `.mth` file: YAML front matter, Markdown prose, and calc
+One plain-text `.mth` file: YAML front matter, Markdown prose, and math
 blocks. The unit of editing, evaluation and printing.
 _Avoid_: Sheet, notebook, script, worksheet
 
@@ -14,13 +14,13 @@ _Avoid_: Sheet, notebook, script, worksheet
 The YAML header of a document carrying its metadata (title, project, author, date,
 revision). Feeds the report header and footer.
 
-**Calc block**:
+**Math block**:
 A fenced block inside a document holding statements, one per line. The editor presents it
 as a cell; evaluation runs its lines in order.
-_Avoid_: Cell, code block, math block
+_Avoid_: Cell, code block, calc block
 
 **Statement**:
-One line of a calc block: an assignment, a bare expression, or a check. Evaluated once,
+One line of a math block: an assignment, a bare expression, or a check. Evaluated once,
 in document order, against the variables defined above it.
 _Avoid_: Formula, equation, expression (an expression is only the right-hand side)
 
@@ -80,7 +80,7 @@ The text of a trailing comment on a statement, printed beside it (a label or a c
 reference). A comment on its own line prints nothing.
 
 **Conditional**:
-An `if` / `else if` / `else` / `end` group inside a calc block. Only the taken branch prints,
+An `if` / `else if` / `else` / `end` group inside a math block. Only the taken branch prints,
 after its evaluated condition.
 
 **Condition line**:
@@ -88,5 +88,5 @@ The evaluated condition printed before a taken branch; for an `else` branch, the
 condition above it, negated.
 
 **Modifier**:
-A trailing `;` (silent) or `:` (result only) on a statement, or `hide` / `results` on a calc
+A trailing `;` (silent) or `:` (result only) on a statement, or `hide` / `results` on a math
 block.
