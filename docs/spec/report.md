@@ -28,9 +28,10 @@ editor themes are separate.
 - Input: one per line, always. Caption right-aligned on the same line, mono, grey.
 - Derived: the three-line render on one line when it fits, caption right-aligned on its first
   line. Clause references like `(6.13)` are ordinary captions.
-- Check: both sides on the left; on the right edge of the line, a pill badge `✓ OK` (green) or
-  `✗ FAIL` (red) with glyph and word so greyscale print still reads, `η = 0.50` in mono, then the
-  caption (badges right-aligned since the editor review, 2026-10-16).
+- Check: both sides on the left; on the right edge of the line, the caption, then a pill badge
+  `✓ OK 50%` (green) or `✗ FAIL 107%` (red) with glyph, word and the utilization as a percent,
+  so greyscale print still reads (right-aligned, caption first, η inside the badge since the
+  editor review, 2026-10-16).
 - Conditional: condition line (`condition → evaluated`, with the same badge on the right), taken
   branch indented with a thin left rule.
 - `hide` / `results` / `;` / `:` as the grammar says.

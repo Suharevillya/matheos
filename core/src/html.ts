@@ -3,6 +3,7 @@ import katex from 'katex';
 import { toHast } from 'mdast-util-to-hast';
 import { toHtml as hastToHtml } from 'hast-util-to-html';
 import type { Rendered, RenderedStatement } from './model.js';
+import { percent } from './printer.js';
 
 // ponytail: fonts and KaTeX CSS come from CDNs for now; the spec wants them inlined for offline CLI output.
 // Upgrade path: read the woff2 files from node_modules at build time and embed as data URIs.
@@ -49,10 +50,9 @@ function statement(it: RenderedStatement): string {
   const cap = it.caption ? `<span class="cap">${esc(it.caption)}</span>` : '';
   if (it.error) return `<div class="st"><span class="err">✗ ${esc(it.error)}</span><span class="right">${cap}</span></div>`;
   const body = tex(it.latex, it.kind !== 'input');
-  let right = '';
-  if (it.kind === 'check' || it.kind === 'cond') right += `<span class="badge ${it.verdict ? 'ok' : 'fail'}">${it.verdict ? '✓ OK' : '✗ FAIL'}</span>`;
-  if (it.kind === 'check') right += `<span class="eta">η = ${it.eta}</span>`;
-  return `<div class="st ${it.kind}"><span>${body}</span><span class="right">${right}${cap}</span></div>`;
+  let right = cap;   // caption first, then the verdict
+  if (it.kind === 'check' || it.kind === 'cond') right += `<span class="badge ${it.verdict ? 'ok' : 'fail'}">${it.verdict ? '✓ OK' : '✗ FAIL'}${it.kind === 'check' ? ` ${percent(it.eta)}` : ''}</span>`;
+  return `<div class="st ${it.kind}"><span>${body}</span><span class="right">${right}</span></div>`;
 }
 
 export interface HtmlOptions {

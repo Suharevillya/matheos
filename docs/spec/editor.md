@@ -11,11 +11,13 @@ modes):
 
 | Toggle | Options |
 |---|---|
-| preview | off: editor centred (max 980 px); on: report preview slides in on the right, 50/50, no drag handle, same renderer as print. `Ctrl+P` toggles it. |
-| editor style | **source**: plain text with results beside and below the statements; **rendered**: a math block renders as the report block while the cursor is outside it, click or arrow in to edit |
+| preview | off: editor centred (max 980 px); on: report preview slides in on the right, 50/50, no drag handle, same renderer as print |
+| editor style | **source**: plain text only, results as text at line end (no KaTeX inside math blocks); **rendered**: a math block renders as the report block while the cursor is outside it, click or arrow in to edit, the full KaTeX render below each derived line while inside |
 
 Under 700 px the preview, when on, replaces the editor. Scrollbars are thin everywhere. The
-preview keeps its scroll position across re-evaluations and follows the editor's scroll.
+preview keeps its scroll position across re-evaluations; editor and preview scroll
+independently (coupling removed on review, 2026-10-16). The block under the cursor is outlined
+in the preview.
 
 ## Results in the editor
 
@@ -24,9 +26,9 @@ Source is never hidden. Every math block line gets a tinted background; fence li
 | Statement | Shown |
 |---|---|
 | input | nothing (the literal is the value) |
-| derived | a rendered line directly below the statement, display-mode KaTeX, the full three-line render, on the math-block background with the accent line at the left |
-| check | at line end: `✓ OK` / `✗ FAIL` badge and `η = 0.50` |
-| condition line | at line end: badge and the evaluated comparison |
+| derived | source style: `= 112.5 kN·m` as text at line end; rendered style (cursor inside the block): the full three-line KaTeX render below the statement, on the math-block background with the accent line at the left |
+| check | at line end: `✓ OK 50%` / `✗ FAIL 107%` badge with the utilization as a percent |
+| condition line | at line end: badge and the evaluated comparison as text |
 | error | wavy underline on the line, message in red at line end, gutter dot |
 | depends on a failed statement | `…` in place of the value |
 
@@ -48,8 +50,10 @@ the cursor is highlighted; an error prints in red inside its block. No problems 
   (remembered, with a reset); the other tokens stay with the theme.
 - Markdown tokens are coloured from the theme tokens, never CodeMirror defaults, so both themes
   read.
-- `Ctrl+P` opens the preview for printing; `Tab` in a math block inserts two spaces; `Ctrl+/`
-  toggles a `#` comment. Everything else is CodeMirror default.
+- `Ctrl+P` and the `pdf` button print the report pane (the browser dialog saves it as PDF; on
+  Firefox and Safari a notice points to Chrome, Edge or the CLI); `Ctrl+S` saves; `Tab` in a
+  math block inserts two spaces; `Ctrl+/` toggles a `#` comment. Everything else is CodeMirror
+  default.
 
 ## Mobile
 

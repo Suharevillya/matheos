@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse, evaluate, toHtml, type Rendered } from '@matheos/core';
+import { parse, evaluate, toHtml, plainText, type Rendered } from '@matheos/core';
 import { inlineHead } from './assets.js';
 import { findChrome, installChrome } from './chrome.js';
 import { renderPdf } from './pdf.js';
@@ -57,12 +57,7 @@ function check(files: string[], json: boolean): number {
   return code;
 }
 
-/** LaTeX -> readable text for the terminal. */
-export function plain(latex: string): string {
-  return latex.replace(/\{\\cdot\}|\\cdot/g, '·').replace(/\\mathrm\{([^}]*)\}/g, '$1').replace(/\\(le|ge)\b/g, (m) => (m === '\\le' ? '≤' : '≥'))
-    .replace(/\\,/g, ' ').replace(/_\{([^}]*)\}/g, '_$1').replace(/\\(mathit|text)\{([^}]*)\}/g, '$2')
-    .replace(/\\left\(|\\right\)/g, (m) => (m === '\\left(' ? '(' : ')')).replace(/\^\{([^}]*)\}/g, '^$1').replace(/\\[a-zA-Z]+/g, (m) => m.slice(1));
-}
+const plain = plainText;
 
 async function render(files: string[], out: string | undefined, chromeFlag: string | undefined): Promise<number> {
   let code: number = EXIT.ok;

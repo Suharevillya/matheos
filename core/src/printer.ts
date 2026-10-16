@@ -214,6 +214,24 @@ export function literalsOf(expr: string): string[] {
   return (expr.match(/(?<![A-Za-z_\d.])\d+\.?\d*(?:e[-+]?\d+)?/gi) ?? []);
 }
 
+/** LaTeX -> readable plain text (terminal output, source-style editor results). */
+export function plainText(latex: string): string {
+  return latex.replace(/\{\\cdot\}|\\cdot/g, '·').replace(/\\mathrm\{([^}]*)\}/g, '$1')
+    .replace(/\\(le|ge|ne)\b/g, (m) => ({ '\\le': '≤', '\\ge': '≥', '\\ne': '≠' })[m]!)
+    .replace(/\\;\\rightarrow\\;/g, '→').replace(/\\,/g, ' ').replace(/_\{([^}]*)\}/g, '_$1')
+    .replace(/\\(mathit|text)\{([^}]*)\}/g, '$2').replace(/\\left\(|\\right\)/g, (m) => (m === '\\left(' ? '(' : ')'))
+    .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '($1)/($2)').replace(/\\sqrt\{([^{}]*)\}/g, '√($1)')
+    .replace(/\^\{([^}]*)\}/g, '^$1').replace(/\\varepsilon/g, 'ε').replace(/\\gamma/g, 'γ').replace(/\\delta/g, 'δ').replace(/\\eta/g, 'η')
+    .replace(/\\lambda/g, 'λ').replace(/\\alpha/g, 'α').replace(/\\phi/g, 'φ').replace(/\\sigma/g, 'σ').replace(/\\pi/g, 'π')
+    .replace(/\\[a-zA-Z]+/g, (m) => m.slice(1)).replace(/\s+/g, ' ').trim();
+}
+
+/** Utilization as the badge shows it: `50%`. */
+export function percent(eta: string | undefined): string {
+  const n = Number(eta);
+  return Number.isFinite(n) ? `${Math.round(n * 100)}%` : '';
+}
+
 export function negate(op: string): string {
   return ({ '<=': '>', '<': '>=', '>=': '<', '>': '<=', '==': '!=', '!=': '==' } as Record<string, string>)[op] ?? op;
 }

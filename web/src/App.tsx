@@ -27,6 +27,7 @@ const ICON = {
   open: 'M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
   save: 'M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z M17 21v-8H7v8 M7 3v5h8',
   preview: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  print: 'M6 9V3h12v6 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v7H6z',
 };
 
 export function App() {
@@ -60,14 +61,20 @@ export function App() {
   }, [text, file]);
   const doNew = useCallback(() => { load({ name: 'untitled.mth', text: '---\ntitle: Untitled\n---\n\n# Untitled\n\n```math\nL = 6.0 m\n```\n' }); }, [load]);
   const saveRef = useRef(doSave); saveRef.current = doSave;
-  const previewRef = useRef(preview); previewRef.current = preview;
+  const doPrint = useCallback(() => {
+    const w = frame.current?.contentWindow; if (!w) return;
+    if (!('chrome' in window)) setHint('Identical pagination needs Chrome, Edge or the CLI (matheos render).');
+    w.focus(); w.print();
+  }, []);
+  const printRef = useRef(doPrint); printRef.current = doPrint;
+  const [hint, setHint] = useState<string | undefined>();
 
   // the editor, once
   useEffect(() => {
     if (!host.current || view.current) return;
     view.current = createEditor(host.current, sample, setText, dark, {
       save: () => { void saveRef.current(); return true; },
-      preview: () => { setPreview(!previewRef.current); return true; },
+      print: () => { printRef.current(); return true; },
     });
     view.current.dispatch({ effects: setLive.of(style === 'rendered') });
     onLaunchedFile(load);
@@ -110,20 +117,7 @@ export function App() {
     doc.documentElement.scrollTop = previewScroll.current;
     doc.addEventListener('scroll', () => { previewScroll.current = doc.documentElement.scrollTop; });
   }, []);
-  // editor scroll drives the preview; the block under the cursor is outlined
-  useEffect(() => {
-    const v = view.current; if (!v || !preview) return;
-    const sync = () => {
-      const doc = frame.current?.contentDocument; if (!doc) return;
-      const top = v.lineBlockAtHeight(v.scrollDOM.scrollTop + 8);
-      const n = v.state.doc.lineAt(top.from).number;
-      const els = [...doc.querySelectorAll<HTMLElement>('[data-line]')];
-      const target = els.filter((e) => Number(e.dataset.line) <= n).pop() ?? els[0];
-      if (target) { doc.documentElement.scrollTop = target.offsetTop - 24; previewScroll.current = doc.documentElement.scrollTop; }
-    };
-    v.scrollDOM.addEventListener('scroll', sync);
-    return () => v.scrollDOM.removeEventListener('scroll', sync);
-  }, [preview, ev]);
+  // the block under the cursor is outlined in the preview (scrolls stay independent)
   useEffect(() => {
     const v = view.current, doc = frame.current?.contentDocument; if (!v || !doc || !preview) return;
     const n = v.state.doc.lineAt(v.state.selection.main.head).number;
@@ -151,7 +145,8 @@ export function App() {
           <button id="style-source" aria-pressed={style === 'source'} onClick={() => setStyle('source')} title="Plain text with results beside it">source</button>
           <button id="style-rendered" aria-pressed={style === 'rendered'} onClick={() => setStyle('rendered')} title="Math blocks render until you click into them">rendered</button>
         </div>
-        <button className="plain toggle" id="preview" aria-pressed={preview} onClick={() => setPreview(!preview)} title="Ctrl+P"><Icon d={ICON.preview} />preview</button>
+        <button className="plain toggle" id="preview" aria-pressed={preview} onClick={() => setPreview(!preview)}><Icon d={ICON.preview} />preview</button>
+        <button className="plain" id="print" onClick={doPrint} title="Print the report or save it as PDF (Ctrl+P)"><Icon d={ICON.print} />pdf</button>
         <span className="sp" />
         <span className="status" id="status">
           {checks.length} checks{failed ? <span className="bad">, {failed} failed</span> : ''}{errors ? <span className="bad">, {errors} error{errors === 1 ? '' : 's'}</span> : ''}
@@ -165,6 +160,9 @@ export function App() {
           theme: {theme}
         </button>
       </div>
+      {hint && (
+        <div className="notice" role="status">{hint}<button className="plain" id="hint-close" onClick={() => setHint(undefined)}>ok</button></div>
+      )}
       {recover && (
         <div className="notice" role="status">
           Unsaved draft of <b>{recover.name}</b> from an earlier session.

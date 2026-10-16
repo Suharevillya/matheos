@@ -7,7 +7,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { tags as t } from '@lezer/highlight';
 import { indentWithTab } from '@codemirror/commands';
 import katex from 'katex';
-import type { Document, Rendered, RenderedStatement } from '@matheos/core';
+import { plainText, percent, type Document, type Rendered, type RenderedStatement } from '@matheos/core';
 
 export interface Evaluation { doc: Document; rendered: Rendered }
 export const setEvaluation = StateEffect.define<Evaluation>();
@@ -19,7 +19,9 @@ const tex = (latex: string, display: boolean) => {
   katex.render(latex, el, { throwOnError: false, displayMode: display });
   return el;
 };
-const badge = (ok: boolean) => { const b = document.createElement('span'); b.className = `badge ${ok ? 'ok' : 'fail'}`; b.textContent = ok ? '✓ OK' : '✗ FAIL'; return b; };
+const badge = (ok: boolean, eta?: string) => { const b = document.createElement('span'); b.className = `badge ${ok ? 'ok' : 'fail'}`; b.textContent = (ok ? '✓ OK' : '✗ FAIL') + (eta ? ` ${percent(eta)}` : ''); return b; };
+/** The result piece of a rendered line (`name = formula = substituted = result`). */
+const resultOf = (latex: string) => latex.split(' = ').pop() ?? latex;
 
 /** Full three-line render of a derived statement, on its own line below the source. */
 class BelowWidget extends WidgetType {
@@ -28,10 +30,10 @@ class BelowWidget extends WidgetType {
   toDOM() { const d = document.createElement('div'); d.className = 'below'; d.appendChild(tex(this.latex, true)); return d; }
   override ignoreEvent() { return false; }
 }
-/** Badge and η (checks), badge and comparison (condition lines), message (errors), `…` (dependants). */
+/** Line-end result in plain text: badge (checks, condition lines), result value (derived), message (errors), `…` (dependants). */
 class EndWidget extends WidgetType {
   constructor(readonly it: RenderedStatement) { super(); }
-  override eq(o: EndWidget) { return o.it.latex === this.it.latex && o.it.error === this.it.error && o.it.verdict === this.it.verdict && o.it.eta === this.it.eta; }
+  override eq(o: EndWidget) { return o.it.kind === this.it.kind && o.it.latex === this.it.latex && o.it.error === this.it.error && o.it.verdict === this.it.verdict && o.it.eta === this.it.eta; }
   toDOM() {
     const s = document.createElement('span'); s.className = 'res';
     const it = this.it;
@@ -39,8 +41,9 @@ class EndWidget extends WidgetType {
       const dep = it.error.startsWith('depends on');
       s.classList.add(dep ? 'dep' : 'e'); s.textContent = dep ? '…' : `✗ ${it.error}`; s.title = it.error; return s;
     }
-    if (it.kind === 'check') { s.appendChild(badge(it.verdict ?? false)); s.appendChild(document.createTextNode(`η = ${it.eta}`)); }
-    else if (it.kind === 'cond') { s.appendChild(badge(it.verdict ?? false)); s.appendChild(tex(it.latex, false)); }
+    if (it.kind === 'check') s.appendChild(badge(it.verdict ?? false, it.eta));
+    else if (it.kind === 'cond') { s.appendChild(badge(it.verdict ?? false)); s.appendChild(document.createTextNode(plainText(it.latex))); }
+    else if (it.kind === 'derived' || it.kind === 'bare') s.textContent = `= ${plainText(resultOf(it.latex))}`;
     return s;
   }
 }
@@ -68,9 +71,8 @@ class BlockWidget extends WidgetType {
       if (it.error) { left.className = 'e'; left.textContent = `✗ ${it.error}`; }
       else left.appendChild(tex(it.latex, it.kind !== 'input'));
       const right = document.createElement('span'); right.className = 'lright';
-      if (!it.error && (it.kind === 'check' || it.kind === 'cond')) right.appendChild(badge(it.verdict ?? false));
-      if (!it.error && it.kind === 'check') { const e = document.createElement('span'); e.className = 'leta'; e.textContent = `η = ${it.eta}`; right.appendChild(e); }
       if (it.caption) { const c = document.createElement('span'); c.className = 'lcap'; c.textContent = it.caption; right.appendChild(c); }
+      if (!it.error && (it.kind === 'check' || it.kind === 'cond')) right.appendChild(badge(it.verdict ?? false, it.kind === 'check' ? it.eta : undefined));
       row.append(left, right);
       if (it.indent) { if (!branch) { branch = document.createElement('div'); branch.className = 'lbranch'; el.appendChild(branch); } branch.appendChild(row); }
       else { branch = undefined; el.appendChild(row); }
@@ -108,7 +110,8 @@ function build(state: EditorState, ev: Evaluation, live: boolean): DecorationSet
       const line = lineAt(it.pos.start.line);
       if (!line || line.number <= open.number || line.number >= close.number) continue;
       if (it.error && !it.error.startsWith('depends on')) items.push({ from: line.from, to: line.from, deco: errLine });
-      if (it.error || it.kind === 'check' || it.kind === 'cond') items.push({ from: line.to, to: line.to, deco: Decoration.widget({ widget: new EndWidget(it), side: 1 }) });
+      // source style: plain text at line end; rendered style (cursor inside the block): the KaTeX render below
+      if (it.error || it.kind === 'check' || it.kind === 'cond' || !live) items.push({ from: line.to, to: line.to, deco: Decoration.widget({ widget: new EndWidget(it), side: 1 }) });
       else if (it.kind === 'derived' || it.kind === 'bare') items.push({ from: line.to, to: line.to, deco: Decoration.widget({ widget: new BelowWidget(it.latex), block: true, side: 1 }) });
     }
   });
@@ -186,7 +189,7 @@ const toggleComment = (view: EditorView): boolean => {
   return true;
 };
 
-export interface Commands { save: () => boolean; preview: () => boolean }
+export interface Commands { save: () => boolean; print: () => boolean }
 
 export function replaceText(view: EditorView, text: string) {
   view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: text }, selection: { anchor: 0 } });
@@ -203,7 +206,7 @@ export function createEditor(parent: HTMLElement, doc: string, onChange: (text: 
           indentWithTab,
           { key: 'Mod-/', run: toggleComment },
           { key: 'Mod-s', run: () => { (window as unknown as { __matheosSave?: () => void }).__matheosSave?.(); return commands.save(); } },
-          { key: 'Mod-p', run: commands.preview },
+          { key: 'Mod-p', run: commands.print },
         ]),
         themeCompartment.of(cmTheme(dark)),
         EditorView.updateListener.of((u) => { if (u.docChanged) onChange(u.state.doc.toString()); }),
