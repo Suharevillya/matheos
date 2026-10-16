@@ -6,16 +6,16 @@ CodeMirror 6, one document, Markdown mode plus a decoration field for math block
 
 ## Modes
 
-Four view modes, toggled in the toolbar and remembered with the theme:
+One layout and two toggles, both remembered (changed 2026-10-16 on the editor review from four
+modes):
 
-| Mode | Layout |
+| Toggle | Options |
 |---|---|
-| editor | source centred (max 980 px), results inline (below) |
-| live | as editor, but a math block renders as the report block while the cursor is outside it; click or arrow in to edit (added 2026-10-16 on the editor review) |
-| split | editor left, report preview right, fixed 50/50, no drag handle |
-| preview | the report full width, same renderer as print |
+| preview | off: editor centred (max 980 px); on: report preview slides in on the right, 50/50, no drag handle, same renderer as print. `Ctrl+P` toggles it. |
+| editor style | **source**: plain text with results beside and below the statements; **rendered**: a math block renders as the report block while the cursor is outside it, click or arrow in to edit |
 
-Under 700 px the split becomes `edit` / `view` tabs. Scrollbars are thin everywhere.
+Under 700 px the preview, when on, replaces the editor. Scrollbars are thin everywhere. The
+preview keeps its scroll position across re-evaluations and follows the editor's scroll.
 
 ## Results in the editor
 
@@ -24,7 +24,7 @@ Source is never hidden. Every math block line gets a tinted background; fence li
 | Statement | Shown |
 |---|---|
 | input | nothing (the literal is the value) |
-| derived | a rendered line directly below the statement, indented, display-mode KaTeX, the full three-line render |
+| derived | a rendered line directly below the statement, display-mode KaTeX, the full three-line render, on the math-block background with the accent line at the left |
 | check | at line end: `✓ OK` / `✗ FAIL` badge and `η = 0.50` |
 | condition line | at line end: badge and the evaluated comparison |
 | error | wavy underline on the line, message in red at line end, gutter dot |
